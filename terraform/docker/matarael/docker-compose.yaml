@@ -1,0 +1,63 @@
+# Dashboards
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:v1.2
+    container_name: homepage
+    hostname: homepage
+    restart: always
+    environment:
+      - PUID=${UID}
+      - PGID=${UID}
+      - TZ=${TZ}
+      - HOMEPAGE_ALLOWED_HOSTS=192.168.1.209:3000
+    network_mode: host
+    volumes:
+      - ./config/homepage:/app/config
+    healthcheck:
+      test: curl -fs http://localhost:3000 || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # homarr:
+  #   image: ghcr.io/homarr-labs/homarr:v1.13.1
+  #   container_name: homarr
+  #   hostname: homarr
+  #   restart: always
+  #   environment:
+  #     - PUID=${UID}
+  #     - PGID=${UID}
+  #     - TZ=${TZ}
+  #     - DEFAULT_COLOR_SCHEME=dark
+  #     - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY}
+  #   network_mode: host
+  #   volumes:
+  #     - ./config/homarr/appdata:/appdata
+  #   healthcheck:
+  #     test: wget --no-check-certificate --no-verbose --tries=3 --spider http://localhost:7575 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 30s
+  #     retries: 3
+
+  # homer:
+  #   image: b4bz/homer:v23.02.2
+  #   container_name: homer
+  #   restart: always
+  #   user: "${UID}:${GID}"
+  #   environment:
+  #     - UID=${UID}
+  #     - GID=${GID}
+  #     - TZ=${TZ}
+  #     - PASSWORD=${PASSWORD}
+  #   network_mode: host
+  #   volumes:
+  #     - ./config/homer/icons:/www/assets/icons
+  #     - ./config/homer/config.yml:/www/assets/config.yml
+  #   healthcheck:
+  #     test: wget -nv -t 1 --spider --spider http://localhost:8080 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 30s
+  #     retries: 3
