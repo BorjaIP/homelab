@@ -1,6 +1,6 @@
 <div align="center">
   <h1> Homelab</h1>
-  <p><strong>A fully automated, themed homelab built with Proxmox, Terraform, and docker.</strong></p>
+  <p><strong>A fully automated, themed homelab built with Proxmox, Terraform, and Docker.</strong></p>
 </div>
 
 ---
@@ -54,7 +54,7 @@ This enables:
 
 ```text
                        
-                      +-------------------------+         +-------------------------+
+                      +-------------------------+         +---------------------0----+
                       | +---------------------+ |         | +---------------------+  |
                       | |                     | |         | |                     |  |
 +---------+     :443  | |  +---------+        | | :8088   | |  +------------+     |  |
@@ -67,7 +67,7 @@ This enables:
                       | |             docker1 | |         | |             docker2 |  |
                       | +---------------------+ |         | +---------------------+  |
                       |                     vm1 |         |                    vm2   |
-                      +-------------------------+         +-------------------------+
+                      +-------------------------+         +--------------------------+
 ```
 
 ## 📁 NFS Configuration
