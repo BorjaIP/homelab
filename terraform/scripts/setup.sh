@@ -29,13 +29,6 @@ if [ -d "${MOUNT_POINT}/backups/${1}/config" ] && [ ! -f "${CONFIG_PATH}/.rsync_
     touch "${CONFIG_PATH}/.rsync_done"
 fi
 
-# echo "Step 5: Configuring Docker to expose TCP on port 2375"
-# if ! grep -q 'tcp://0.0.0.0:2375' /lib/systemd/system/docker.service; then
-#     sudo sed -i 's|ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock|ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375|' /lib/systemd/system/docker.service
-#     sudo systemctl daemon-reload
-#     sudo systemctl restart docker
-# fi
-
 echo "Step 5: Adding user to the Docker group"
 sudo usermod -aG docker "${USER}"
 
