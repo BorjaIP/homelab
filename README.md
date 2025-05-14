@@ -4,21 +4,21 @@
 </div>
 
 ---
-- [System Configuration](#system-configuration)
-  - [🔑 SSH Key \& Certificate Generation](#-ssh-key--certificate-generation)
-  - [🌐 Proxy Configuration (Traefik)](#-proxy-configuration-traefik)
-  - [📁 NFS Configuration](#-nfs-configuration)
-    - [Optional - Share Storage](#optional---share-storage)
-    - [1. Install NFS Server](#1-install-nfs-server)
-    - [2. Add NFS Storage to Proxmox](#2-add-nfs-storage-to-proxmox)
-  - [🧱 Base VMs with Packer](#-base-vms-with-packer)
-  - [🚀 VM Deployment with Terraform](#-vm-deployment-with-terraform)
-  - [🧪 Testing](#-testing)
-  - [🔗 References](#-references)
+- [🔧 System Configuration](#-system-configuration)
+- [🔑 SSH Key \& Certificate Generation](#-ssh-key--certificate-generation)
+- [🌐 Proxy Configuration (Traefik)](#-proxy-configuration-traefik)
+- [📁 NFS Configuration](#-nfs-configuration)
+  - [Optional - Share Storage](#optional---share-storage)
+  - [1. Install NFS Server](#1-install-nfs-server)
+  - [2. Add NFS Storage to Proxmox](#2-add-nfs-storage-to-proxmox)
+- [🧱 Base VMs with Packer](#-base-vms-with-packer)
+- [🚀 VM Deployment with Terraform](#-vm-deployment-with-terraform)
+- [🧪 Testing](#-testing)
+- [🔗 References](#-references)
 
 This homelab infrastructure is centered on **Proxmox VE** using **Terraform** and **Docker** to provision VMs and Dockers (*names based in the Angels from Neon Genesis Evangelion*). Each VM serves a specific purpose like media, storage, or network automation.
 
-# System Configuration
+## 🔧 System Configuration
 
 > Refer to the table below for an at-a-glance view of each configured and planned virtual machine and its corresponding role.
 
