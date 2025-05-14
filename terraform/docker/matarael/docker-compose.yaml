@@ -9,7 +9,7 @@ services:
       - PUID=${UID}
       - PGID=${UID}
       - TZ=${TZ}
-      - HOMEPAGE_ALLOWED_HOSTS=192.168.1.209:3000
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
     network_mode: host
     volumes:
       - ./config/homepage:/app/config
