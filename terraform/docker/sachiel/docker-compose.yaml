@@ -1,0 +1,44 @@
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:1.41.6
+    container_name: plex
+    hostname: plex
+    restart: always
+    environment:
+      - PUID=${UID}
+      - PGID=${UID}
+      - TZ=${TZ}
+      - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}
+    network_mode: host
+    volumes:
+      - ./config/plex:/config
+      - ${STORAGE}/Media/Series:/tv
+      - ${STORAGE}/Media/Movies:/movies
+    healthcheck:
+      test: wget -nv -t 1 --spider --spider http://localhost:32400/?X-Plex-Token=${PLEX_TOKEN} > /dev/null 2>&1 || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # Documentation https://github.com/Taxel/PlexTraktSync
+  # plextraktsync:
+  #   image: ghcr.io/taxel/plextraktsync:0.29.7
+  #   container_name: plextraktsync
+  #   restart: always
+  #   depends_on: [plex]
+  #   environment:
+  #     - PUID=${UID}
+  #     - PGID=${UID}
+  #     - TZ=${TZ}
+  #   network_mode: host
+  #   command: watch
+  #   volumes:
+  #     - ./plextraktsync:/app/config
+  #   healthcheck:
+  #     test: wget -nv -t 1 --spider http://plex.home:32400/?X-Plex-Token=${PLEX_TOKEN} > /dev/null 2>&1 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 30s
+  #     retries: 3
