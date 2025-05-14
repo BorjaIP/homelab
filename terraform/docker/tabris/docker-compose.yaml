@@ -1,0 +1,19 @@
+# Storage tools
+services:
+  samba:
+    image: dperson/samba:amd64
+    container_name: samba
+    restart: always
+    ports:
+      - 137:137/udp
+      - 138:138/udp
+      - 139:139/tcp
+      - 445:445/tcp
+    network_mode: bridge
+    mem_limit: 512m
+    command: '-u "${SAMBA_USER};${SAMBA_PASS}" -s "Drive;/Drive;yes;no"'
+    stdin_open: true
+    tty: true
+    volumes:
+      - /usr/share/zoneinfo/Europe/Madrid:/etc/localtime
+      - /mnt/storage:/Drive
