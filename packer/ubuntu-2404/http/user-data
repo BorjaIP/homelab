@@ -1,0 +1,41 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US
+  keyboard:
+    layout: us
+  ssh:
+    install-server: true
+    allow-pw: true
+    disable_root: true
+    ssh_quiet_keygen: true
+    allow_public_ssh_keys: true
+  storage:
+    layout:
+      name: direct
+    swap:
+      size: 0
+  user-data:
+    package_upgrade: true
+    timezone: Europe/Madrid
+    groups:
+      - docker
+    users:
+      - name: ubuntu
+        groups: [adm, sudo, docker]
+        lock-passwd: false
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFznI2NK4AQryiU4OOoiuBWqb+VIl3M34Jr+OtGS1QGz server
+  packages:
+    - qemu-guest-agent
+    - sudo
+    - curl
+    - net-tools
+    - vim
+    - zip
+    - unzip
+    - gnupg
+    - ca-certificates
+    - lsb-release
