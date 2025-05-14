@@ -122,10 +122,10 @@ Example export entry:
 /mnt/storage 192.168.1.0/24(rw,sync,no_subtree_check)
 ```
 
-> Replace 192.168.1.0/24 with the subnet of your Proxmox server (e.g., 192.168.1.0/24 allows all IPs in the 192.168.1.x range).
-> rw: Allows read and write access.
-> sync: Ensures changes are written to disk before the client is notified.
-> no_subtree_check: Prevents subtree checking for better performance.
+> - Replace 192.168.1.0/24 with the subnet of your Proxmox server (e.g., 192.168.1.0/24 allows all IPs in the 192.168.1.x range).
+> - rw: Allows read and write access.
+> - sync: Ensures changes are written to disk before the client is notified.
+> - no_subtree_check: Prevents subtree checking for better performance.
 
 ### 2. Add NFS Storage to Proxmox
 
