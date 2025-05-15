@@ -1,0 +1,13 @@
+http:
+  routers:
+    trans:
+      service: trans
+      rule: "Host(`trans.home`)"
+      entrypoints:
+        - "web"
+  services:
+    trans:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.205:9091"
+

@@ -1,0 +1,45 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+api:
+  insecure: true
+  dashboard: true
+log:
+  level: DEBUG
+  # format: common
+entryPoints:
+  web:
+    address: ":80"
+    # (Optional) Redirect to HTTPS
+    # http:
+    #   redirections:
+    #     entryPoint:
+    #       to: websecure
+    #       scheme: https
+  websecure:
+    address: ":443"
+# certificatesResolvers:
+#   myresolver:
+#     acme:
+#       email: my@email.com
+#       storage: /letsencrypt/acme.json
+#       dnsChallenge:
+#         provider: cloudflare
+providers:
+  providersThrottleDuration: 2s
+  docker:
+    exposedByDefault: false
+  file:
+    # watch for dynamic configuration changes
+    directory: /etc/traefik
+    watch: true
+  # Configuration for traefik-kop
+  # docker:
+  #   watch: true
+  #   endpoint: unix:///var/run/docker.sock
+  #   exposedByDefault: false
+  # redis:
+  #   endpoints:
+  #     # assumes a redis link with this service name running on the same
+  #     # docker host as traefik
+  #     - "redis:6379"

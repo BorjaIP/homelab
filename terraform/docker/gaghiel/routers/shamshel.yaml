@@ -1,0 +1,48 @@
+http:
+  routers:
+    sonarr:
+      service: sonarr
+      rule: "Host(`sonarr.home`)"
+      entrypoints:
+        - "web"
+    radarr:
+      service: radarr
+      rule: "Host(`radarr.home`)"
+      entrypoints:
+        - "web"
+    lidarr:
+      service: lidarr
+      rule: "Host(`lidarr.home`)"
+      entrypoints:
+        - "web"
+    prowlarr:
+      service: prowlarr
+      rule: "Host(`porwlarr.home`)"
+      entrypoints:
+        - "web"
+    overseerr:
+      service: overseerr
+      rule: "Host(`overseerr.home`)"
+      entrypoints:
+        - "web"
+  services:
+    sonarr:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.204:8989"
+    radarr:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.204:7878"
+    lidarr:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.204:8686"
+    prowlarr:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.204:9696"
+    overseerr:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.204:5055"

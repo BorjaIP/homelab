@@ -5,6 +5,8 @@ services:
     container_name: traefik
     hostname: traefik
     restart: always
+    command:
+      - "--configfile=/config.yaml"
     ports:
       - 80:80
       - 8080:8080
@@ -16,28 +18,23 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik/logs:/var/log/traefik/
       - ./config/traefik/acme.json:/acme.json
-      - ./config/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
-    labels:
-      - "traefik.enable=true"
-      # - "traefik.http.routers.traefik-secure.rule=Host(${url})"
-      # - "traefik.http.routers.traefik-secure.tls.certresolver=production"
-      # - "traefik.http.routers.traefik-secure.tls=true"
-      # - "traefik.http.services.traefik-secure.loadbalancer.server.port=${port}"
-      # - "traefik.http.routers.traefik-secure.entrypoints=web-secure"
-      # - "traefik.http.routers.traefik-secure.service=api@internal"
-      # - "traefik.http.routers.traefik-secure.middlewares=authelia-secure@docker"
-  redis:
-    image: redis:8.0.0
-    container_name: redis
-    hostname: redis
-    restart: always
-    ports:
-      - 6379:6379
-    environment:
-      - TZ=${TZ}
-    command: redis-server --save 60 1 --loglevel warning
-    volumes: 
-      - ./config/redis:/data
+      - ./config/traefik/config.yaml:/config.yaml:ro
+      - ./config/traefik/routers/:/etc/traefik/
+
+  # Documentation: https://github.com/jittering/traefik-kop
+  # Use with traefik-kop
+  # redis:
+  #   image: redis:8.0.0
+  #   container_name: redis
+  #   hostname: redis
+  #   restart: always
+  #   ports:
+  #     - 6379:6379
+  #   environment:
+  #     - TZ=${TZ}
+  #   command: redis-server --save 60 1 --loglevel warning
+  #   volumes: 
+  #     - ./config/redis:/data
 
   # cloudflare:
   #   image: cloudflare/cloudflared:2024.2.0-arm64
