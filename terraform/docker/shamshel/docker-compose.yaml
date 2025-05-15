@@ -19,13 +19,6 @@ services:
       - ./config/sonarr:/config
       - ${STORAGE}/Transmission/complete:/downloads
       - ${STORAGE}/Media/Series:/tv
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.sonarr.rule=Host(`${SONARR_DOMAIN}`)
-      - traefik.http.routers.sonarr.entrypoints=web
-      - traefik.http.routers.sonarr.service=sonarr
-      - traefik.http.services.sonarr.loadbalancer.server.scheme=http
-      - traefik.http.services.sonarr.loadbalancer.server.port=8989
     healthcheck:
       test: curl -fs http://localhost:8989 || exit 1
       interval: 30s
@@ -50,13 +43,6 @@ services:
       - ./config/radarr:/config
       - ${STORAGE}/Transmission/complete:/downloads
       - ${STORAGE}/Media/Movies:/movies
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.radarr.rule=Host(`${RADARR_DOMAIN}`)
-      - traefik.http.routers.radarr.entrypoints=web
-      - traefik.http.routers.radarr.service=radarr
-      - traefik.http.services.radarr.loadbalancer.server.scheme=http
-      - traefik.http.services.radarr.loadbalancer.server.port=7878
     healthcheck:
       test: curl -fs http://localhost:7878 || exit 1
       interval: 30s
@@ -83,13 +69,6 @@ services:
       - ./config/scripts/lidarr_init.sh:/custom-cont-init.d/lidarr_init.sh
       - ${STORAGE}/Transmission/complete:/downloads
       - ${STORAGE}/Media/Music:/music
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.lidarr.rule=Host(`${LIDARR_DOMAIN}`)
-      - traefik.http.routers.lidarr.entrypoints=web
-      - traefik.http.routers.lidarr.service=lidarr
-      - traefik.http.services.lidarr.loadbalancer.server.scheme=http
-      - traefik.http.services.lidarr.loadbalancer.server.port=7878
     healthcheck:
       test: curl -fs http://localhost:8686 || exit 1
       interval: 30s
@@ -111,13 +90,6 @@ services:
     network_mode: host
     volumes:
       - ./config/prowlarr:/config
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.prowlarr.rule=Host(`${PROWLARR_DOMAIN}`)
-      - traefik.http.routers.prowlarr.entrypoints=web
-      - traefik.http.routers.prowlarr.service=prowlarr
-      - traefik.http.services.prowlarr.loadbalancer.server.scheme=http
-      - traefik.http.services.prowlarr.loadbalancer.server.port=7878
     healthcheck:
       test: curl -fs http://localhost:9696 || exit 1
       interval: 30s
@@ -149,13 +121,6 @@ services:
     network_mode: host
     volumes:
       - ./config/overseerr:/config
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.overseerr.rule=Host(`${PROWLARR_DOMAIN}`)
-      - traefik.http.routers.overseerr.entrypoints=web
-      - traefik.http.routers.overseerr.service=overseerr
-      - traefik.http.services.overseerr.loadbalancer.server.scheme=http
-      - traefik.http.services.overseerr.loadbalancer.server.port=5055
     healthcheck:
       test: curl -fs http://localhost:5055 || exit 1
       interval: 30s
@@ -163,13 +128,13 @@ services:
       start_period: 30s
       retries: 3
 
-  traefik-kop:
-    image: ghcr.io/jittering/traefik-kop:0.16
-    container_name: traefik-kop
-    hostname: traefik-kop
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - "REDIS_ADDR=${REDIS_ADDR}"
-      - "BIND_IP=${SHAMSHEL_IP}"
+  # traefik-kop:
+  #   image: ghcr.io/jittering/traefik-kop:0.16
+  #   container_name: traefik-kop
+  #   hostname: traefik-kop
+  #   restart: always
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - "REDIS_ADDR=${REDIS_ADDR}"
+  #     - "BIND_IP=${SHAMSHEL_IP}"
