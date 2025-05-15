@@ -29,6 +29,13 @@ if [ -d "${MOUNT_POINT}/backups/${1}/config" ] && [ ! -f "${CONFIG_PATH}/.rsync_
     touch "${CONFIG_PATH}/.rsync_done"
 fi
 
+if [ "$1" = "gaghiel" ]; then
+    echo "Step 4.5: Copying traefik configuration"
+    mkdir -p "${CONFIG_PATH}/traefik"
+    rsync -a --info=progress2 --ignore-existing "/home/${USER}/config.yaml" "${CONFIG_PATH}/traefik/config.yaml"
+    rsync -a --info=progress2 --ignore-existing "/home/${USER}/routers" "${CONFIG_PATH}/traefik/"
+fi
+
 echo "Step 5: Adding user to the Docker group"
 sudo usermod -aG docker "${USER}"
 
