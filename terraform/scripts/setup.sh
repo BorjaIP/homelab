@@ -29,12 +29,23 @@ if [ -d "${MOUNT_POINT}/backups/${1}/config" ] && [ ! -f "${CONFIG_PATH}/.rsync_
     touch "${CONFIG_PATH}/.rsync_done"
 fi
 
-if [ "$1" = "gaghiel" ]; then
-    echo "Step 4.5: Copying traefik configuration"
-    mkdir -p "${CONFIG_PATH}/traefik"
-    rsync -a --info=progress2 --ignore-existing "/home/${USER}/config.yaml" "${CONFIG_PATH}/traefik/config.yaml"
-    rsync -a --info=progress2 --ignore-existing "/home/${USER}/routers" "${CONFIG_PATH}/traefik/"
-fi
+case "$1" in
+    gaghiel)
+        echo "Step 4.5: Copying traefik configuration"
+        mkdir -p "${CONFIG_PATH}/traefik"
+        rsync -a --info=progress2 --remove-source-files "/home/${USER}/config.yaml" "${CONFIG_PATH}/traefik/config.yaml"
+        rsync -a --info=progress2 --remove-source-files "/home/${USER}/routers" "${CONFIG_PATH}/traefik/"
+        ;;
+    matarael)
+        echo "Step 4.5: Copying homepage configuration"
+        mkdir -p "${CONFIG_PATH}/homepage"
+        if [ -f "/home/${USER}/.env" ]; then
+            export $(grep -v '^#' "/home/${USER}/.env" | grep -E '^(PROXMOX_USER|PROXMOX_PASS)=' | xargs)
+        fi
+        envsubst < "/home/${USER}/services-tpl.yaml" > "/home/${USER}/services.yaml" && rm "/home/${USER}/services-tpl.yaml"
+        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/services.yaml" "${CONFIG_PATH}/homepage/services.yaml"
+        ;;
+esac
 
 echo "Step 5: Adding user to the Docker group"
 sudo usermod -aG docker "${USER}"

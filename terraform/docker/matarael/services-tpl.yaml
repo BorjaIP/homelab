@@ -1,0 +1,105 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/services/
+# Icons: https://dashboardicons.com/
+
+- Infrastructure:
+  - Proxmox:
+      icon: proxmox.svg
+      description: Proxmox VE
+      href: http://192.168.1.111:8006
+      widget:
+        type: proxmox
+        url: https://192.168.1.111:8006
+        username: ${PROXMOX_USER}
+        password: ${PROXMOX_PASS}
+
+- Media:
+  - Plex:
+      icon: plex.svg
+      description: Your personal media an live TV
+      href: http://plex.home
+      siteMonitor: http://plex.home
+      statusStyle: "dot"
+
+- Arr Stack:
+  - Overseerr:
+      icon: overseerr.svg
+      description: Request management and media discovery
+      href: http://overseerr.home
+      siteMonitor: http://overseerr.home
+      statusStyle: "dot"
+  - Sonarr:
+      icon: sonarr.svg
+      description: TV Shows collection manager
+      href: http://sonarr.home
+      siteMonitor: http://sonarr.home
+      statusStyle: "dot"
+  - Radarr:
+      icon: radarr.svg
+      description: Movie collection manager
+      href: http://radarr.home
+      siteMonitor: http://radarr.home
+      statusStyle: "dot"
+  - Lidarr:
+      icon: lidarr.svg
+      description: Music collection manager
+      href: http://lidarr.home
+      siteMonitor: http://lidarr.home
+      statusStyle: "dot"
+  - Prowlarr:
+      icon: prowlarr.svg
+      description: Torrent trackers collection manager
+      href: http://prowlarr.home
+      siteMonitor: http://prowlarr.home
+      statusStyle: "dot"
+
+- Downloads:
+  - Transmission:
+      icon: transmission.svg
+      description: BitTorrent client
+      href: http://trans.home
+      siteMonitor: http://trans.home
+      statusStyle: "dot"
+
+- Networking:
+  - Traefik:
+      icon: traefik.svg
+      description: Traefik reverse proxy
+      href: http://traefik.home
+      siteMonitor: http://traefik.home
+      statusStyle: "dot"
+
+- Networking:
+  - Pihole:
+      icon: pi-hole.svg
+      description: A black hole for Internet advertisements
+      href: http://pi.hole
+      siteMonitor: http://pi.hole
+      statusStyle: "dot"
+  - Traefik:
+      icon: traefik.svg
+      description: Traefik reverse proxy
+      href: http://traefik.home
+      siteMonitor: http://traefik.home
+      statusStyle: "dot"
+
+- Monitoring:
+  - Portainer:
+      icon: portainer.svg
+      description: Making Docker and Kubernetes management easy
+      href: http://portainer.home
+      siteMonitor: http://portainer.home
+      statusStyle: "dot"
+  - Grafana:
+      icon: grafana.svg
+      description: Observability platform
+      href: http://grafana.home
+      siteMonitor: http://grafana.home
+      statusStyle: "dot"
+  - Kuma:
+      icon: uptime-kuma.svg
+      description: Status monitoring solution
+      href: http://kuma.home
+      siteMonitor: http://kuma.home
+      statusStyle: "dot"
