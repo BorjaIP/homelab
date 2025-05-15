@@ -31,7 +31,7 @@ These steps are tailored specifically to my homelab infrastructure. Some assumpt
 
 ## 🔑 SSH Key & Certificate Generation
 
-Generate an SSH key for your cloud-init or other services:
+Generate an SSH key for your vm's or other services:
 
 ```bash
 ssh-keygen -t ed25519 -C "server"
@@ -144,7 +144,7 @@ Example export entry:
 > [!Warning]
 > ⚠️ To be able to run packer from WSL2 you need to change the network mode.
 
-All virtual machines are built from a `cloud-init` Ubuntu 24.04 image using Packer. This ensures consistency across deployments.
+All virtual machines are built from a [cloud-init](https://cloudinit.readthedocs.io/en/latest/index.html) Ubuntu 24.04 image using Packer. This ensures consistency across deployments.
 
 Configure `variables.auto.pkrvars.hcl` file for custom values.
 
