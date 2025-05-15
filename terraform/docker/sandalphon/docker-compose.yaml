@@ -26,6 +26,7 @@ services:
       - SERVER_REGIONS=${SERVER_REGIONS}
     volumes:
       - ./config/gluetun:/gluetun
+  
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:v3.3.21
     container_name: flaresolverr
@@ -35,6 +36,7 @@ services:
       - 8191:8191
     environment:
       - LOG_LEVEL=info
+
   tailscale:
     image: tailscale/tailscale:v1.82.5
     container_name: tailscale
