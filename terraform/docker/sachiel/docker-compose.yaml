@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       - PUID=${UID}
-      - PGID=${UID}
+      - PGID=${GID}
       - TZ=${TZ}
       - VERSION=docker
       - PLEX_CLAIM=${PLEX_CLAIM}
@@ -23,22 +23,22 @@ services:
       retries: 3
 
   # Documentation https://github.com/Taxel/PlexTraktSync
-  # plextraktsync:
-  #   image: ghcr.io/taxel/plextraktsync:0.29.7
-  #   container_name: plextraktsync
-  #   restart: always
-  #   depends_on: [plex]
-  #   environment:
-  #     - PUID=${UID}
-  #     - PGID=${UID}
-  #     - TZ=${TZ}
-  #   network_mode: host
-  #   command: watch
-  #   volumes:
-  #     - ./plextraktsync:/app/config
-  #   healthcheck:
-  #     test: wget -nv -t 1 --spider http://plex.home:32400/?X-Plex-Token=${PLEX_TOKEN} > /dev/null 2>&1 || exit 1
-  #     interval: 30s
-  #     timeout: 10s
-  #     start_period: 30s
-  #     retries: 3
+  plextraktsync:
+    image: ghcr.io/taxel/plextraktsync:0.34.10
+    container_name: plextraktsync
+    restart: always
+    depends_on: [plex]
+    environment:
+      - PUID=${UID}
+      - PGID=${GID}
+      - TZ=${TZ}
+    network_mode: host
+    command: watch
+    volumes:
+      - ./config/plextraktsync:/app/config
+    healthcheck:
+      test: wget -nv -t 1 --spider http://plex:32400/?X-Plex-Token=${PLEX_TOKEN} > /dev/null 2>&1 || exit 1
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
