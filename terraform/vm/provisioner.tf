@@ -11,9 +11,7 @@ resource "null_resource" "docker_compose_setup" {
   }
 
   triggers = {
-    docker_file_hash = filesha256("${path.root}/docker/${var.name}/docker-compose.yaml")
-    env_file_hash    = filesha256("${path.root}/.env")
-    setup_file_hash  = filesha256("${path.root}/scripts/setup.sh")
+    always_run = timestamp()
   }
 
   # Copying files

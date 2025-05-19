@@ -21,6 +21,24 @@
       href: http://plex.home
       siteMonitor: http://plex.home
       statusStyle: "dot"
+  - Navidrome:
+      icon: navidrome.svg
+      description: Your personal music streaming server
+      href: http://navidrome.home
+      siteMonitor: http://navidrome.home
+      statusStyle: "dot"
+  - Calibre:
+      icon: calibre-web.svg
+      description: Your personal reading server
+      href: http://calibre.home
+      siteMonitor: http://calibre.home
+      statusStyle: "dot"
+  - Kavita:
+      icon: kavita.svg
+      description: Your personal reading comics/manga server
+      href: http://kavita.home
+      siteMonitor: http://kavita.home
+      statusStyle: "dot"
 
 - Arr Stack:
   - Overseerr:

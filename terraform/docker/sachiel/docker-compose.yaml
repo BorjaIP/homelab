@@ -1,4 +1,5 @@
 services:
+  # Media stack
   plex:
     image: lscr.io/linuxserver/plex:1.41.6
     container_name: plex
@@ -42,3 +43,117 @@ services:
       timeout: 10s
       start_period: 30s
       retries: 3
+
+  # Books stack
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:0.6.24
+    container_name: calibre-web
+    restart: always
+    environment:
+      - PUID=${UID}
+      - PGID=${GID}
+      - TZ=${TZ}
+      - DOCKER_MODS=linuxserver/mods:universal-calibre #optional
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1 #optional
+    volumes:
+      - ./config/calibre-web:/config
+      - ${STORAGE}/Calibre/Library:/books
+    ports:
+      - 8083:8083
+
+  # Documentation: https://github.com/crocodilestick/Calibre-Web-Automated
+  # calibre-web-automated:
+  #   image: crocodilestick/calibre-web-automated:latest
+  #   container_name: calibre-web-automated
+  #   restart: always
+  #   ports:
+  #     - 8083:8083
+  #   environment:
+  #     - PUID=${UID}
+  #     - PGID=${GID}
+  #     - TZ=${TZ}
+  #     - TZ=Europe/Amsterdam
+  #   volumes:
+  #     - ./config/calibre_web_automated:/config
+  #     # This is an ingest dir, NOT a library one. Anything added here will be automatically added to your library according to the settings you have configured in CWA Settings page. All files placed here are REMOVED AFTER PROCESSING
+  #     - ${STORAGE}/Library/ingest:/cwa-book-ingest    
+  #     # If you don't have an existing library, CWA will automatically create one at the bind provided here
+  #     - ${STORAGE}/Library:/calibre-library
+  #   healthcheck:
+  #     test: curl -fs http://localhost:8083 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 30s
+  #     retries: 3
+
+  # kavita:
+  #   image: lscr.io/linuxserver/kavita:0.8.6
+  #   container_name: kavita
+  #   restart: always
+  #   ports:
+  #     - 5000:5000
+  #   environment:
+  #     - PUID=${UID}
+  #     - PGID=${GID}
+  #     - TZ=${TZ}
+  #   volumes:
+  #     - ./config/kavita:/config      
+  #     - ${STORAGE}/Library/Books:/books
+  #     - ${STORAGE}/Library/Comics:/comics
+  #     - ${STORAGE}/Library/Manga:/manga
+  #   healthcheck:
+  #     test: curl -fs http://localhost:5000 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 30s
+  #     retries: 3
+
+  # komf:
+  #   image: sndxr/komf:latest
+  #   container_name: komf
+  #   restart: always
+  #   user: "${UID}:${GID}"
+  #   ports:
+  #     - 8085:8085
+  #   environment:
+  #     # - KOMF_KOMGA_BASE_URI=http://komga:25600
+  #     # - KOMF_KOMGA_USER=admin@example.org
+  #     # - KOMF_KOMGA_PASSWORD=admin
+  #     - KOMF_KAVITA_BASE_URI=http://kavita:5000
+  #     - KOMF_KAVITA_API_KEY=${KAVITA_API}
+  #     - KOMF_LOG_LEVEL=INFO
+  #     - KOMF_METADATA_PROVIDERS_MAL_CLIENT_ID=${KOMF_METADATA_PROVIDERS_MAL_CLIENT_ID}
+  #     - KOMF_METADATA_PROVIDERS_COMIC_VINE_API_KEY=${KOMF_METADATA_PROVIDERS_COMIC_VINE_API_KEY}
+  #     # optional jvm options. Example config for low memory usage. Runs guaranteed cleanup up every 3600000ms(1hour)
+  #     # - JAVA_TOOL_OPTIONS=-XX:+UnlockExperimentalVMOptions -XX:+UseShenandoahGC -XX:ShenandoahGCHeuristics=compact -XX:ShenandoahGuaranteedGCInterval=3600000 -XX:TrimNativeHeapInterval=3600000
+  #   volumes:
+  #     - ./config/komf:/config #path to directory with application.yml and database file
+  #   healthcheck:
+  #     test: curl -fs http://localhost:8085 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 30s
+  #     retries: 3
+
+  # komga:
+  #   image: ghcr.io/gotson/komga:1.21.3
+  #   container_name: komga
+  #   restart: always
+  #   user: "${UID}:${GID}"
+  #   ports:
+  #     - 25600:25600
+  #   environment:
+  #     - PUID=${UID}
+  #     - PGID=${GID}
+  #     - TZ=${TZ}
+  #   volumes:
+  #     - ./config/komga:/config
+  #     - ${STORAGE}/Library/Books:/books
+  #     - ${STORAGE}/Library/Comics:/comics
+  #     - ${STORAGE}/Library/Manga:/manga
+  #   healthcheck:
+  #     test: curl -fs http://localhost:25600 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 30s
+  #     retries: 3

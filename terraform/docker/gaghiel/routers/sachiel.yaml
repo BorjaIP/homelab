@@ -5,8 +5,17 @@ http:
       rule: "Host(`plex.home`)"
       entrypoints:
         - "web"
+    calibre:
+      service: calibre
+      rule: "Host(`calibre.home`)"
+      entrypoints:
+        - "web"
   services:
     plex:
       loadBalancer:
         servers:
         - url: "http://192.168.1.203:32400"
+    calibre:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.203:8083"
