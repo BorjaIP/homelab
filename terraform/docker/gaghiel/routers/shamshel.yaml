@@ -17,7 +17,7 @@ http:
         - "web"
     prowlarr:
       service: prowlarr
-      rule: "Host(`porwlarr.home`)"
+      rule: "Host(`prowlarr.home`)"
       entrypoints:
         - "web"
     overseerr:

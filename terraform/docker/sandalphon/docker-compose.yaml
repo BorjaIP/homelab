@@ -14,6 +14,9 @@ services:
       - 8888:8888/udp
       - 8388:8388/tcp # shadowsocks
       - 8388:8388/udp # shadowsocks
+      - 8191:8191/tcp # flaresolverr
+    networks:
+      - private
     environment:
       - HTTPPROXY=on
       - HTTPPROXY_LOG=on
@@ -30,12 +33,13 @@ services:
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:v3.3.21
     container_name: flaresolverr
-    hostname: flaresolverr
     restart: always
-    ports:
-      - 8191:8191
+    network_mode: service:gluetun
+    security_opt:
+      - no-new-privileges:true
     environment:
-      - LOG_LEVEL=info
+      - TZ=${TZ}
+      - LOG_LEVEL=debug
 
   tailscale:
     image: tailscale/tailscale:v1.82.5
@@ -56,3 +60,8 @@ services:
     volumes:
       - ./config/tailscale:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
+
+networks:
+  private:
+    driver:  bridge
+    enable_ipv6: false
