@@ -16,6 +16,22 @@ services:
       start_period: 30s
       retries: 3
 
+  dozzle:
+    image: amir20/dozzle:v8.12.16
+    container_name: dozzle
+    hostname: dozzle
+    restart: always
+    environment:
+      - DOZZLE_REMOTE_HOST=${DOZZLE_REMOTE_HOST}
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 3s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
   # traefik-kop:
   #   image: ghcr.io/jittering/traefik-kop:0.16
   #   container_name: traefik-kop

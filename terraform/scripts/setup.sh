@@ -58,6 +58,16 @@ esac
 echo "Step 5: Adding user to the Docker group"
 sudo usermod -aG docker "${USER}"
 
+echo "Step 5.1: Exposing Docker host in TCP"
+if ! sudo netstat -lntp | grep -q ':2375.*dockerd'; then
+    sudo sed -i 's|^ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock|& -H tcp://0.0.0.0:2375|' /lib/systemd/system/docker.service
+    echo "Setting up Docker Host ID for Dozzle"
+    DOCKER_HOST_ID=$(uuidgen)
+    echo "$DOCKER_HOST_ID" | sudo tee /var/lib/docker/engine-id
+    sudo systemctl daemon-reload
+    sudo systemctl restart docker.service
+fi
+
 echo "Step 6: Deploying Docker Compose services"
 sudo docker compose -f "/home/${USER}/docker-compose.yaml" up -d
 

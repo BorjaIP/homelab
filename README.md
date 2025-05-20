@@ -258,7 +258,7 @@ terraform destroy -target='module.vms["ramiel"]'
         <td style="padding: 8px; border: 1px solid #ccc;">Sahaquiel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">210</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Monitoring</td>
-        <td style="padding: 8px; border: 1px solid #ccc;">Uptimekuma</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Uptimekuma / Dozzle</td>
       </tr>
       <tr>
         <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/2/2e/Ep13_ireul_pribnowbox.jpg/175px-Ep13_ireul_pribnowbox.jpg" width="64" /></td>
