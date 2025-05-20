@@ -13,7 +13,9 @@
   - [2. Add NFS Storage to Proxmox](#2-add-nfs-storage-to-proxmox)
 - [🧱 Base VMs with Packer](#-base-vms-with-packer)
 - [🚀 VM Deployment with Terraform](#-vm-deployment-with-terraform)
-- [🧪 Testing](#-testing)
+- [⚙️ Configuration](#️-configuration)
+  - [Transmission and OpenVPN](#transmission-and-openvpn)
+  - [Home Assistant](#home-assistant)
 - [🔗 References](#-references)
 
 This homelab infrastructure is centered on **Proxmox VE** using **Terraform** and **Docker** to provision VMs and Dockers (*names based in the Angels from Neon Genesis Evangelion*). Each VM serves a specific purpose like media, storage, or network automation.
@@ -273,9 +275,16 @@ terraform destroy -target='module.vms["ramiel"]'
 
 [*]: *Future changes or upgrades.*
 
-## 🧪 Testing
+## ⚙️ Configuration
+
+### Transmission and OpenVPN
 
 - For testing Transmission with OpenVPN add this torrent from [TorGuard](https://torguard.net/checkmytorrentipaddress.php?hash=f1f5bda133bdbb4743773cc8548cbaee1fbff88a).
+
+### Home Assistant
+
+- Setup [HACS](https://hacs.xyz/docs/use/download/download/)
+- Setup IKEA [Dirigera](https://github.com/sanjoyg/dirigera_platform)
 
 ## 🔗 References
 

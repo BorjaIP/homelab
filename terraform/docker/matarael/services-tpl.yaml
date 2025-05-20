@@ -13,6 +13,12 @@
         url: https://192.168.1.111:8006
         username: ${PROXMOX_USER}
         password: ${PROXMOX_PASS}
+  - Homeassistant:
+      icon: home-assistant.svg
+      description: Home Assistant
+      href: http://homeassistant.local:8123
+      siteMonitor: http://192.168.1.212:8123
+      statusStyle: "dot"
 
 - Media:
   - Plex:
@@ -107,8 +113,20 @@
       href: http://traefik.home
       siteMonitor: http://traefik.home
       statusStyle: "dot"
+  - Netalertx:
+      icon: netalertx.svg
+      description: Network monitoring
+      href: http://netalertx.home
+      siteMonitor: http://netalertx.home
+      statusStyle: "dot"
 
 - Monitoring:
+  - Dozzle:
+      icon: dozzle.svg
+      description: Real-time log viewer for Docker containers
+      href: http://dozzle.home
+      siteMonitor: http://dozzle.home
+      statusStyle: "dot"
   - Portainer:
       icon: portainer.svg
       description: Making Docker and Kubernetes management easy

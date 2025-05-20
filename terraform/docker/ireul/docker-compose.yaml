@@ -1,22 +1,19 @@
 # Utilities
 services:
   # home-assistant:
-  #   image: ghcr.io/home-assistant/home-assistant:stable
+  #   image: ghcr.io/home-assistant/home-assistant:2025.5.2
   #   container_name: home-assistant
   #   restart: always
   #   security_opt:
   #     - no-new-privileges:true
   #   network_mode: host
-  #   # devices:
-  #   #   - /dev/ttyUSB0:/dev/ttyUSB0 # Uncomment if you have USB devices
-  #   #   - /dev/ttyUSB1:/dev/ttyUSB1 # Uncomment if you have USB devices
-  #   #   - /dev/ttyACM0:/dev/ttyACM0 # Uncomment if you have USB devices
   #   privileged: true
   #   volumes:
   #     - ./config/home-assistant:/config
   #     - /etc/localtime:/etc/localtime:ro
+  #     - /run/dbus:/run/dbus:ro
   #   healthcheck:
-  #     test: curl -fs http://localhost:3001 || exit 1
+  #     test: curl -fs http://localhost:8123 || exit 1
   #     interval: 30s
   #     timeout: 10s
   #     start_period: 30s

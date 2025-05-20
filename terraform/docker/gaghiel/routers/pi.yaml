@@ -10,6 +10,11 @@ http:
       rule: "Host(`grafana.home`)"
       entrypoints:
         - "web"
+    netalertx:
+      service: netalertx
+      rule: "Host(`netalertx.home`)"
+      entrypoints:
+        - "web"
   services:
     portainer:
       loadBalancer:
@@ -19,3 +24,7 @@ http:
       loadBalancer:
         servers:
         - url: "http://192.168.1.100:3000"
+    netalertx:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.100:20211"

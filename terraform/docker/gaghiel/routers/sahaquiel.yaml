@@ -5,8 +5,17 @@ http:
       rule: "Host(`kuma.home`)"
       entrypoints:
         - "web"
+    dozzle:
+      service: dozzle
+      rule: "Host(`dozzle.home`)"
+      entrypoints:
+        - "web"
   services:
     kuma:
       loadBalancer:
         servers:
         - url: "http://192.168.1.210:3001"
+    dozzle:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.210:8080"
