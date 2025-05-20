@@ -45,6 +45,14 @@ case "$1" in
         envsubst < "/home/${USER}/services-tpl.yaml" > "/home/${USER}/services.yaml" && rm "/home/${USER}/services-tpl.yaml"
         rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/services.yaml" "${CONFIG_PATH}/homepage/services.yaml"
         ;;
+    tabris)
+        echo "Step 4.5: Copying nextcloud configuration"
+        mkdir -p "${CONFIG_PATH}/nextcloud"
+        sudo chown -R "33:33" "${CONFIG_PATH}/nextcloud"
+        mkdir -p "${CONFIG_PATH}/before-starting"
+        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/config.sh" "${CONFIG_PATH}/before-starting/config.sh"
+        sudo chmod +x "${CONFIG_PATH}/before-starting/config.sh"
+        ;;
 esac
 
 echo "Step 5: Adding user to the Docker group"

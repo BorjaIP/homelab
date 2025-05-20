@@ -80,12 +80,18 @@
       siteMonitor: http://trans.home
       statusStyle: "dot"
 
-- Networking:
-  - Traefik:
-      icon: traefik.svg
-      description: Traefik reverse proxy
-      href: http://traefik.home
-      siteMonitor: http://traefik.home
+- Utilities:
+  - Immich:
+      icon: immich.svg
+      description: Self-hosted photo and video backup solution
+      href: http://immich.home
+      siteMonitor: http://immich.home
+      statusStyle: "dot"
+  - Nextcloud:
+      icon: nextcloud.svg
+      description: Nextcloud file sharing
+      href: http://nextcloud.home
+      siteMonitor: http://nextcloud.home
       statusStyle: "dot"
 
 - Networking:

@@ -1,0 +1,13 @@
+http:
+  routers:
+    nextcloud:
+      service: nextcloud
+      rule: "Host(`nextcloud.home`)"
+      entrypoints:
+        - "web"
+  services:
+    nextcloud:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.217:8080"
+
