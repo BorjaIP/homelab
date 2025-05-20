@@ -260,6 +260,13 @@ terraform destroy -target='module.vms["ramiel"]'
         <td style="padding: 8px; border: 1px solid #ccc;">Monitoring</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Uptimekuma</td>
       </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/2/2e/Ep13_ireul_pribnowbox.jpg/175px-Ep13_ireul_pribnowbox.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Ireul</td>
+        <th style="padding: 8px; border: 1px solid #ccc;">211</th>
+        <td style="padding: 8px; border: 1px solid #ccc;">Utilities</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Home Assistant / Immich / Paperless</td>
+      </tr>
     </tbody>
   </table>
 </div>
