@@ -33,8 +33,8 @@ case "$1" in
     gaghiel)
         echo "Step 4.5: Copying traefik configuration"
         mkdir -p "${CONFIG_PATH}/traefik"
-        rsync -a --info=progress2 --remove-source-files "/home/${USER}/config.yaml" "${CONFIG_PATH}/traefik/config.yaml"
-        rsync -a --info=progress2 --remove-source-files "/home/${USER}/routers" "${CONFIG_PATH}/traefik/"
+        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/config.yaml" "${CONFIG_PATH}/traefik/config.yaml"
+        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/routers" "${CONFIG_PATH}/traefik/"
         ;;
     matarael)
         echo "Step 4.5: Copying homepage configuration"
@@ -44,6 +44,8 @@ case "$1" in
         fi
         envsubst < "/home/${USER}/services-tpl.yaml" > "/home/${USER}/services.yaml" && rm "/home/${USER}/services-tpl.yaml"
         rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/services.yaml" "${CONFIG_PATH}/homepage/services.yaml"
+        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/widgets.yaml" "${CONFIG_PATH}/homepage/widgets.yaml"
+        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/settings.yaml" "${CONFIG_PATH}/homepage/settings.yaml"
         ;;
     tabris)
         echo "Step 4.5: Copying nextcloud configuration"

@@ -1,0 +1,19 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/settings/
+
+title: Homepage
+description: 🧬 My personal homepage
+
+# underlined # default style
+# boxed
+# clean
+# boxedWidgets
+headerStyle: boxedWidgets
+
+providers:
+  openweathermap: openweathermapapikey
+  weatherapi: weatherapiapikey
+
+hideVersion: true
+disableUpdateCheck: true

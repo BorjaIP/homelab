@@ -1,0 +1,42 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/info-widgets/
+
+# - logo:
+#     icon: https://github.com/user-attachments/assets/1dd5ecd1-45f1-4ec4-8db8-1dbed308a5e9
+
+# - greeting:
+#     text_size: 4xl
+#     text: Homelab
+
+- glances:
+    label: Proxmox Server
+    url: http://192.168.1.111:61208
+    version: 4 
+    cpu: true
+    mem: true
+    cputemp: true
+    diskUnits: bytes
+
+- glances:
+    label: RaspberryPi
+    url: http://192.168.1.100:61208
+    version: 4
+    cpu: true
+    mem: true
+    cputemp: true
+    diskUnits: bytes
+
+- openmeteo:
+    label: Madrid
+    latitude: 50.449684
+    longitude: 30.525026
+    timezone: Europe/Madrid 
+    units: metric # or imperial
+    cache: 5 # Time in minutes to cache API responses, to stay within limits
+    format: # optional, Intl.NumberFormat options
+      maximumFractionDigits: 1
+
+#- search:
+#    provider: duckduckgo
+#    target: _blank

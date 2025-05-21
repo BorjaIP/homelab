@@ -13,6 +13,20 @@
         url: https://192.168.1.111:8006
         username: ${PROXMOX_USER}
         password: ${PROXMOX_PASS}
+  - Raspberry-pi:
+      icon: raspberry-pi.svg
+      description:  Raspberry Pi
+      href: http://192.168.1.100:61208
+      siteMonitor: http://192.168.1.100:61208
+      statusStyle: "dot"
+      widget:
+        type: glances
+        url: http://192.168.1.100:61208
+        version: 4 # required only if running glances v4 or higher, defaults to 3
+        metric: cpu
+        diskUnits: bytes # optional, bytes (default) or bbytes. Only applies to disk
+        refreshInterval: 5000 # optional - in milliseconds, defaults to 1000 or more, depending on the metric
+        pointsLimit: 15 # optional, defaults to 15
   - Homeassistant:
       icon: home-assistant.svg
       description: Home Assistant

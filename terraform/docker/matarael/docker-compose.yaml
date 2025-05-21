@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       - PUID=${UID}
-      - PGID=${UID}
+      - PGID=${GID}
       - TZ=${TZ}
       - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
     network_mode: host
@@ -27,7 +27,7 @@ services:
   #   restart: always
   #   environment:
   #     - PUID=${UID}
-  #     - PGID=${UID}
+  #     - PGID=${GID}
   #     - TZ=${TZ}
   #     - DEFAULT_COLOR_SCHEME=dark
   #     - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY}
