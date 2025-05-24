@@ -16,6 +16,7 @@
 - [⚙️ Configuration](#️-configuration)
   - [Transmission and OpenVPN](#transmission-and-openvpn)
   - [Home Assistant](#home-assistant)
+  - [Windows Share with Rclone](#windows-share-with-rclone)
 - [🔗 References](#-references)
 
 This homelab infrastructure is centered on **Proxmox VE** using **Terraform** and **Docker** to provision VMs and Dockers (*names based in the Angels from Neon Genesis Evangelion*). Each VM serves a specific purpose like media, storage, or network automation.
@@ -285,6 +286,27 @@ terraform destroy -target='module.vms["ramiel"]'
 
 - Setup [HACS](https://hacs.xyz/docs/use/download/download/)
 - Setup IKEA [Dirigera](https://github.com/sanjoyg/dirigera_platform)
+
+### Windows Share with Rclone
+
+- Install [Rclone](https://rclone.org/install/)
+
+```bash
+# Installing
+winget install --id=Rclone.Rclone -e
+# Setup new SFTP connection
+rclone config
+# Show all volumes
+rclone listremotes
+# Mount
+rclone mount nas:/mnt/storage X: --vfs-cache-mode full --vfs-cache-max-size 2G --vfs-read-chunk-size 64M --vfs-read-chunk-size-limit 512M --buffer-size 32M --attr-timeout 1s --no-modtime --network-mode --dir-cache-time 5m --poll-interval 10s --log-level INFO
+```
+
+- Copy files
+
+```bash
+rclone copy "F:/" nas:"/mnt/storage/backup/" --progress
+```
 
 ## 🔗 References
 
