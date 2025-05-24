@@ -1,22 +1,39 @@
 # Storage tools
 services:
-  samba:
-    image: dperson/samba:amd64
-    container_name: samba
+  # samba:
+  #   image: dperson/samba:amd64
+  #   container_name: samba
+  #   restart: always
+  #   ports:
+  #     - 137:137/udp
+  #     - 138:138/udp
+  #     - 139:139/tcp
+  #     - 445:445/tcp
+  #   network_mode: bridge
+  #   mem_limit: 512m
+  #   command: '-u "${SAMBA_USER};${SAMBA_PASS}" -s "Drive;/Drive;yes;no"'
+  #   stdin_open: true
+  #   tty: true
+  #   volumes:
+  #     - /usr/share/zoneinfo/Europe/Madrid:/etc/localtime
+  #     - ${STORAGE}:/Drive
+
+  filebrowser:
+    image: filebrowser/filebrowser:v2.32.0
+    container_name: filebrowser
     restart: always
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - PUID=${UID}
+      - PGID=${GID}
+      - TZ=${TZ}
     ports:
-      - 137:137/udp
-      - 138:138/udp
-      - 139:139/tcp
-      - 445:445/tcp
-    network_mode: bridge
-    mem_limit: 512m
-    command: '-u "${SAMBA_USER};${SAMBA_PASS}" -s "Drive;/Drive;yes;no"'
-    stdin_open: true
-    tty: true
+      - 8095:80
     volumes:
-      - /usr/share/zoneinfo/Europe/Madrid:/etc/localtime
-      - ${STORAGE}:/Drive
+      - ${STORAGE}:/srv
+      - ./config/filebrowser/database.db:/database.db
+      - ./config/filebrowser/settings.json:/config/settings.json
 
   # Documentation: https://github.com/nextcloud/docker
   # nextcloud:
