@@ -30,10 +30,15 @@ resource "null_resource" "docker_compose_setup" {
     source      = "${path.root}/scripts/setup.sh"
     destination = "/home/bis/setup.sh"
   }
+  provisioner "file" {
+    source      = "${path.root}/scripts/backup.sh"
+    destination = "/home/bis/backup.sh"
+  }
 
   # Executing the setup script
   provisioner "remote-exec" {
     inline = [
+      "sudo chmod +x /home/bis/backup.sh",
       "sudo chmod +x /home/bis/setup.sh",
       "/home/bis/setup.sh ${var.name}"
     ]
