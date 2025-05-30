@@ -1,4 +1,18 @@
 # Utilities
+networks:
+  local-gpt:
+
+volumes:
+  open-webui:
+  open-webui-models:
+  pg-data:
+
+configs:
+  pgvector_init:
+    content: |
+      \c ${POSTGRES_DB-openwebui}
+      CREATE EXTENSION IF NOT EXISTS vector;
+
 services:
   # home-assistant:
   #   image: ghcr.io/home-assistant/home-assistant:2025.5.2
@@ -99,3 +113,53 @@ services:
       interval: 5m
       start_interval: 30s
       start_period: 5m
+
+  pgvector:
+    image: pgvector/pgvector:0.7.4-pg17
+    container_name: pgvector
+    restart: always
+    environment:
+     - POSTGRES_DB=${POSTGRES_DB-openwebui}
+     - POSTGRES_USER=${POSTGRES_USER-openwebui}
+     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD-openwebui}
+    ports:
+      - "5432:5432"
+    configs:
+      - source: pgvector_init
+        target: /docker-entrypoint-initdb.d/init_pgvector.sql
+    volumes:
+      - ./config/pgvector:/var/lib/postgresql/data
+    networks:
+      - local-gpt
+
+  # Local ChatGPT
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.5.20
+    container_name: open-webui
+    restart: always
+    depends_on:
+      - pgvector
+      # - ollama
+    ports:
+      - "8080:8080"
+    environment:
+      - GLOBAL_LOG_LEVEL=${GLOBAL_LOG_LEVEL-INFO}
+      - DEFAULT_MODELS=${DEFAULT_MODELS}
+      - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - ENABLE_OPENAI_API=${ENABLE_OPENAI_API}
+      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - VECTOR_DB=${VECTOR_DB}
+      - PGVECTOR_DB_URL=postgresql://${POSTGRES_USER-openwebui}:${POSTGRES_PASSWORD-openwebui}@pgvector/${POSTGRES_DB-openwebui}
+      - ENABLE_LOGIN_FORM=${ENABLE_LOGIN_FORM}
+      - ENABLE_OAUTH_SIGNUP=${ENABLE_OAUTH_SIGNUP}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GITHUB_CLIENT_REDIRECT_URI=${GITHUB_CLIENT_REDIRECT_URI}
+    volumes:
+      - ./config/open-webui-models:/models
+      - ./config/open-webui:/app/backend/data
+    networks:
+      - local-gpt

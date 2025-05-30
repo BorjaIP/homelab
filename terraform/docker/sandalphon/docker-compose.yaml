@@ -31,15 +31,19 @@ services:
       - ./config/gluetun:/gluetun
   
   flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:v3.3.21
+    # image: ghcr.io/flaresolverr/flaresolverr:v3.3.21
+    image: 21hsmw/flaresolverr:nodrivertest
     container_name: flaresolverr
     restart: always
+    depends_on:
+      - gluetun
     network_mode: service:gluetun
     security_opt:
       - no-new-privileges:true
     environment:
       - TZ=${TZ}
       - LOG_LEVEL=debug
+      - DRIVER=nodriver
 
   tailscale:
     image: tailscale/tailscale:v1.82.5

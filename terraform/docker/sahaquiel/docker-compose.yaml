@@ -17,12 +17,26 @@ services:
       retries: 3
 
   dozzle:
-    image: amir20/dozzle:v8.12.16
+    image: amir20/dozzle:v8.12.19
     container_name: dozzle
     hostname: dozzle
     restart: always
+    security_opt:
+      - no-new-privileges:true
     environment:
+      - PUID=${UID}
+      - PGID=${GID}
+      - TZ=${TZ}
+      - DOZZLE_ENABLE_ACTIONS=true
+      - DOZZLE_ENABLE_SHELL=true
+      - DOZZLE_NO_ANALYTICS=true
+      - DOZZLE_TAILSIZE=500
+      - DOZZLE_HOSTNAME=dozzle.home
+      # - DOZZLE_LEVEL=debug
+      # - DOZZLE_REMOTE_AGENT=${DOZZLE_REMOTE_AGENT}
       - DOZZLE_REMOTE_HOST=${DOZZLE_REMOTE_HOST}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - 8080:8080
     healthcheck:

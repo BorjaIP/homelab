@@ -61,6 +61,23 @@ services:
     ports:
       - 8083:8083
 
+  # Dozzle logs
+  dozzle-agent:
+    image: amir20/dozzle:v8.12.16
+    container_name: dozzle-agent
+    restart: always
+    command: agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 7007:7007
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
+
   # Documentation: https://github.com/crocodilestick/Calibre-Web-Automated
   # calibre-web-automated:
   #   image: crocodilestick/calibre-web-automated:latest
