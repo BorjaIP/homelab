@@ -5,9 +5,18 @@ http:
       rule: "Host(`immich.home`)"
       entrypoints:
         - "web"
+    open-webui:
+      service: open-webui
+      rule: "Host(`open-webui.home`)"
+      entrypoints:
+        - "web"
   services:
     immich:
       loadBalancer:
         servers:
         - url: "http://192.168.1.211:2283"
+    open-webui:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.211:8080"
 

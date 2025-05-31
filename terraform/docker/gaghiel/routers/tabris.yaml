@@ -5,9 +5,18 @@ http:
       rule: "Host(`nextcloud.home`)"
       entrypoints:
         - "web"
+    filebrowser:
+      service: filebrowser
+      rule: "Host(`filebrowser.home`)"
+      entrypoints:
+        - "web"
   services:
     nextcloud:
       loadBalancer:
         servers:
         - url: "http://192.168.1.217:8080"
+    filebrowser:
+      loadBalancer:
+        servers:
+        - url: "http://192.168.1.217:8095"
 
