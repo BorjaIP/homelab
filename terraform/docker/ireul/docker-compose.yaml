@@ -64,24 +64,24 @@ services:
     healthcheck:
       disable: false
 
-#   immich-machine-learning:
-#     container_name: immich_machine_learning
-#     # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
-#     # Example tag: ${IMMICH_VERSION:-release}-cuda
-#     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
-#     # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
-#     #   file: hwaccel.ml.yml
-#     #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
-#     # VAAPI (AMD / NVIDIA / Intel)
-#     devices:
-#       - /dev/dri:/dev/dri
-#     volumes:
-#       - model-cache:/cache
-#     env_file:
-#       - .env
-#     restart: always
-#     healthcheck:
-#       disable: false
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:v1.134.0-openvino
+    container_name: immich_machine_learning
+    hostname: immich
+    restart: always
+    # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
+    #   file: hwaccel.ml.yml
+    #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
+    # VAAPI (AMD / NVIDIA / Intel)
+    device_cgroup_rules:
+      - 'c 189:* rmw'
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - ./config/immich-cache:/cache
+    healthcheck:
+      disable: false
   
   redis:
     image: valkey/valkey:8.0.3-bookworm
