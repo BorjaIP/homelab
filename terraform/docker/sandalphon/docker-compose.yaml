@@ -2,7 +2,7 @@
 # Documentation: https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/private-internet-access.md
 services:
   gluetun:
-    image: qmcgaw/gluetun:pr-2629
+    image: qmcgaw/gluetun:v3.41.0
     container_name: gluetun
     restart: always
     privileged: true
@@ -46,7 +46,7 @@ services:
       - DRIVER=nodriver
 
   tailscale:
-    image: tailscale/tailscale:v1.82.5
+    image: tailscale/tailscale:v1.92.4
     container_name: tailscale
     hostname: sandalphon
     restart: always
