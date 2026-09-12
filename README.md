@@ -194,77 +194,77 @@ terraform destroy -target='module.vms["ramiel"]'
     </thead>
     <tbody>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/e/e8/OP_angel_sachiel_face_clean.jpg/300px-OP_angel_sachiel_face_clean.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/adam.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Adam</td>
         <th style="padding: 8px; border: 1px solid #ccc;">201</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Proxmox Host</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Proxmox VE</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/e/e1/M25_Lilith_Cross_Ritsuko.jpg/175px-M25_Lilith_Cross_Ritsuko.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/lilith.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Lilith</td>
         <th style="padding: 8px; border: 1px solid #ccc;">202</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Storage</td>
         <td style="padding: 8px; border: 1px solid #ccc;">TrueNAS*</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/d/d9/Sachiel_Monitor.jpg/175px-Sachiel_Monitor.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/sachiel.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Sachiel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">203</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Media Server</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Plex / Jellyfin / Plextraktsync / Navidrome</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/e/ec/03_C208_shamshel-comp_crop.jpg/150px-03_C208_shamshel-comp_crop.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/shamshel.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Shamshel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">204</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Arr Stack</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Sonarr / Radarr / Lidarr / Prowlarr / Overseerr</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/7/75/Ramiel_110.jpg/175px-Ramiel_110.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/ramiel.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Ramiel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">205</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Downloaders</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Transmission</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/4/4c/Ep08_gaghiel.jpg/175px-Ep08_gaghiel.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/gaghiel.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Gaghiel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">206</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Reverse Proxy and Tunnels</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Traefik / CloudflareTunnels</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/8/8d/09_C346_israfel-2jump.jpg/175px-09_C346_israfel-2jump.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/israfel.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Israfel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">207</th>
         <td style="padding: 8px; border: 1px solid #ccc;">NFS Server</td>
         <td style="padding: 8px; border: 1px solid #ccc;">NFS*</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/6/6d/Ep10_sandalphon.jpg/175px-Ep10_sandalphon.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/sandalphon.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Sandalphon</td>
         <th style="padding: 8px; border: 1px solid #ccc;">208</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Network tools</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Gluetun / Flaresolverr</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/2/28/11_C337_matarael.jpg/175px-11_C337_matarael.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/matarael.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Matarael</td>
         <th style="padding: 8px; border: 1px solid #ccc;">209</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Dashboards</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Homepage / Homarr / Homer</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/a/a0/12_C250_sahaquiel.jpg/175px-12_C250_sahaquiel.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/sahaquiel.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Sahaquiel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">210</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Monitoring</td>
         <td style="padding: 8px; border: 1px solid #ccc;">Uptimekuma / Dozzle</td>
       </tr>
       <tr>
-        <td style="padding: 8px; border: 1px solid #ccc;"><img src="https://wiki.evageeks.org/images/thumb/2/2e/Ep13_ireul_pribnowbox.jpg/175px-Ep13_ireul_pribnowbox.jpg" width="64" /></td>
+        <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/ireul.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Ireul</td>
         <th style="padding: 8px; border: 1px solid #ccc;">211</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Utilities</td>
