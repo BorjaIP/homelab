@@ -35,7 +35,7 @@ services:
   
   immich:
     container_name: immich
-    image: ghcr.io/immich-app/immich-server:v1.132.3
+    image: ghcr.io/immich-app/immich-server:v3.2.0
     hostname: immich
     restart: always
     environment:
@@ -65,7 +65,7 @@ services:
       disable: false
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v1.134.0-openvino
+    image: ghcr.io/immich-app/immich-machine-learning:v3.2.0-openvino
     container_name: immich_machine_learning
     hostname: immich
     restart: always
@@ -93,13 +93,13 @@ services:
       test: redis-cli ping || exit 1
 
   database:
-    image: tensorchord/pgvecto-rs:pg14-v0.3.0
+    image: pgvector/pgvector:0.7.4-pg15
     container_name: postgres
     restart: always
     security_opt:
       - no-new-privileges:true
     command: >-
-      postgres -c shared_preload_libraries=vectors.so -c 'search_path="$$user", public, vectors' -c logging_collector=on -c max_wal_size=2GB -c shared_buffers=512MB -c wal_compression=on
+      postgres -c logging_collector=on -c max_wal_size=2GB -c shared_buffers=512MB -c wal_compression=on
     environment:
       - POSTGRES_DB=${DB_DATABASE_NAME}
       - POSTGRES_USER=${DB_USERNAME}
