@@ -46,7 +46,7 @@ services:
       - DRIVER=nodriver
 
   tailscale:
-    image: tailscale/tailscale:v1.92.4
+    image: tailscale/tailscale:v1.102.3
     container_name: tailscale
     hostname: sandalphon
     restart: always
@@ -64,6 +64,23 @@ services:
     volumes:
       - ./config/tailscale:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
+
+  # Dozzle logs
+  dozzle-agent:
+    image: amir20/dozzle:v10.10.0
+    container_name: dozzle-agent
+    restart: always
+    command: agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 7007:7007
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
 
 networks:
   private:

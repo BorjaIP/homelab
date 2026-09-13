@@ -14,24 +14,6 @@ configs:
       CREATE EXTENSION IF NOT EXISTS vector;
 
 services:
-  # home-assistant:
-  #   image: ghcr.io/home-assistant/home-assistant:2025.5.2
-  #   container_name: home-assistant
-  #   restart: always
-  #   security_opt:
-  #     - no-new-privileges:true
-  #   network_mode: host
-  #   privileged: true
-  #   volumes:
-  #     - ./config/home-assistant:/config
-  #     - /etc/localtime:/etc/localtime:ro
-  #     - /run/dbus:/run/dbus:ro
-  #   healthcheck:
-  #     test: curl -fs http://localhost:8123 || exit 1
-  #     interval: 30s
-  #     timeout: 10s
-  #     start_period: 30s
-  #     retries: 3
   
   immich:
     container_name: immich
@@ -163,3 +145,20 @@ services:
       - ./config/open-webui:/app/backend/data
     networks:
       - local-gpt
+
+  # Dozzle logs
+  dozzle-agent:
+    image: amir20/dozzle:v10.10.0
+    container_name: dozzle-agent
+    restart: always
+    command: agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 7007:7007
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s

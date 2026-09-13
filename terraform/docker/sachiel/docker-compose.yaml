@@ -63,7 +63,7 @@ services:
 
   # Dozzle logs
   dozzle-agent:
-    image: amir20/dozzle:v8.12.16
+    image: amir20/dozzle:v10.10.0
     container_name: dozzle-agent
     restart: always
     command: agent

@@ -61,3 +61,20 @@ services:
   #     timeout: 10s
   #     start_period: 30s
   #     retries: 3
+
+  # Dozzle logs
+  dozzle-agent:
+    image: amir20/dozzle:v10.10.0
+    container_name: dozzle-agent
+    restart: always
+    command: agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 7007:7007
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+      start_interval: 5s
