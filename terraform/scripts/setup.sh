@@ -24,17 +24,20 @@ fi
 
 echo "Step 4: Recovering backup"
 mkdir -p "${CONFIG_PATH}"
-if [ -d "${MOUNT_POINT}/backups/${1}/config" ] && [ ! -f "${CONFIG_PATH}/.rsync_done" ]; then
-    rsync -a --info=progress2 "${MOUNT_POINT}/backups/${1}/config" "${CONFIG_PATH}/"
-    touch "${CONFIG_PATH}/.rsync_done"
+if [ -d "${MOUNT_POINT}/Backups/${1}/config" ] && [ -z "$(ls -A "${CONFIG_PATH}")" ]; then
+    for entry in "${MOUNT_POINT}/Backups/${1}/config"/*; do
+        name=$(basename "${entry}")
+        echo "  - ${name}"
+        rsync -a "${entry}" "${CONFIG_PATH}/"
+    done
 fi
 
 case "$1" in
     gaghiel)
         echo "Step 4.5: Copying traefik configuration"
         mkdir -p "${CONFIG_PATH}/traefik"
-        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/config.yaml" "${CONFIG_PATH}/traefik/config.yaml"
-        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/routers" "${CONFIG_PATH}/traefik/"
+        rsync -a --remove-source-files --delete "/home/${USER}/config.yaml" "${CONFIG_PATH}/traefik/config.yaml"
+        rsync -a --remove-source-files --delete "/home/${USER}/routers" "${CONFIG_PATH}/traefik/"
         ;;
     matarael)
         echo "Step 4.5: Copying homepage configuration"
@@ -43,16 +46,16 @@ case "$1" in
             export $(grep -v '^#' "/home/${USER}/.env" | grep -E '^(PROXMOX_USER|PROXMOX_PASS)=' | xargs)
         fi
         envsubst < "/home/${USER}/services-tpl.yaml" > "/home/${USER}/services.yaml" && rm "/home/${USER}/services-tpl.yaml"
-        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/services.yaml" "${CONFIG_PATH}/homepage/services.yaml"
-        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/widgets.yaml" "${CONFIG_PATH}/homepage/widgets.yaml"
-        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/settings.yaml" "${CONFIG_PATH}/homepage/settings.yaml"
+        rsync -a --remove-source-files --delete "/home/${USER}/services.yaml" "${CONFIG_PATH}/homepage/services.yaml"
+        rsync -a --remove-source-files --delete "/home/${USER}/widgets.yaml" "${CONFIG_PATH}/homepage/widgets.yaml"
+        rsync -a --remove-source-files --delete "/home/${USER}/settings.yaml" "${CONFIG_PATH}/homepage/settings.yaml"
         ;;
     tabris)
         echo "Step 4.5: Copying nextcloud configuration"
         mkdir -p "${CONFIG_PATH}/nextcloud"
         sudo chown -R "33:33" "${CONFIG_PATH}/nextcloud"
         mkdir -p "${CONFIG_PATH}/before-starting"
-        rsync -a --info=progress2 --remove-source-files --delete "/home/${USER}/config.sh" "${CONFIG_PATH}/before-starting/config.sh"
+        rsync -a --remove-source-files --delete "/home/${USER}/config.sh" "${CONFIG_PATH}/before-starting/config.sh"
         sudo chmod +x "${CONFIG_PATH}/before-starting/config.sh"
         ;;
 esac
@@ -62,5 +65,9 @@ sudo usermod -aG docker "${USER}"
 
 echo "Step 6: Deploying Docker Compose services"
 sudo docker compose -f "/home/${USER}/docker-compose.yaml" up -d
+
+echo "Step 7: Scheduling weekly backups"
+CRON_JOB="0 3 * * 0 /home/${USER}/backup.sh >> /home/${USER}/backup.log 2>&1"
+(crontab -l 2>/dev/null | grep -v "backup.sh" || true; echo "${CRON_JOB}") | crontab -
 
 echo "All steps completed successfully!"

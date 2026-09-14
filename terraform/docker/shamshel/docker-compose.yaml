@@ -14,6 +14,11 @@ services:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
       - NO_PROXY=${NO_PROXY}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     network_mode: host
     volumes:
       - ./config/sonarr:/config
@@ -38,6 +43,11 @@ services:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
       - NO_PROXY=${NO_PROXY}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     network_mode: host
     volumes:
       - ./config/radarr:/config
@@ -62,6 +72,11 @@ services:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
       - NO_PROXY=${NO_PROXY}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     network_mode: host
     volumes:
       - ./config/lidarr:/config
@@ -69,6 +84,7 @@ services:
       - ./config/scripts/lidarr_init.sh:/custom-cont-init.d/lidarr_init.sh
       - ${STORAGE}/Transmission/complete:/downloads
       - ${STORAGE}/Media/Music:/music
+      - ${STORAGE}/Media/MediaCover:/config/MediaCover
     healthcheck:
       test: curl -fs http://localhost:8686 || exit 1
       interval: 30s
@@ -87,6 +103,11 @@ services:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
       - NO_PROXY=${NO_PROXY}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     network_mode: host
     volumes:
       - ./config/prowlarr:/config
@@ -118,6 +139,11 @@ services:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
       - NO_PROXY=${NO_PROXY}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     network_mode: host
     volumes:
       - ./config/overseerr:/config

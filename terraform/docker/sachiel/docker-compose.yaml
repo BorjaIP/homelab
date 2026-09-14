@@ -5,6 +5,11 @@ services:
     container_name: plex
     hostname: plex
     restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - PUID=${UID}
       - PGID=${GID}
@@ -28,6 +33,11 @@ services:
     image: ghcr.io/taxel/plextraktsync:0.34.20
     container_name: plextraktsync
     restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on: [plex]
     environment:
       - PUID=${UID}
@@ -49,6 +59,11 @@ services:
     image: lscr.io/linuxserver/calibre-web:0.6.25
     container_name: calibre-web
     restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - PUID=${UID}
       - PGID=${GID}
@@ -67,6 +82,11 @@ services:
     container_name: dozzle-agent
     restart: always
     command: agent
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:

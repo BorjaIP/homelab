@@ -22,22 +22,18 @@ if ! mount | grep -q "${MOUNT_POINT}"; then
 fi
 
 echo "Step 2: Preparing backup directory"
-BACKUP_DIR="${MOUNT_POINT}/backups/$(hostname)/config"
+BACKUP_DIR="${MOUNT_POINT}/Backups/$(hostname)/config"
 
 echo "Step 3: Zipping the old backup directory"
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
+HOST_DIR="${MOUNT_POINT}/Backups/$(hostname)"
 if [ -d "${BACKUP_DIR}" ]; then
     # Create a zip file of the existing backup
-    zip -rq "config_${TIMESTAMP}.zip" "${BACKUP_DIR}"
-    
+    zip -rq "${HOST_DIR}/config_${TIMESTAMP}.zip" "${BACKUP_DIR}"
+
     # Remove the original directory after zipping
     echo "Removing the old backup directory..."
     sudo rm -rf "${BACKUP_DIR}"/*
-
-    # Copy the zip file to the backup directory
-    echo "Moving the zip file to the backup directory..."
-    HOST_DIR="${MOUNT_POINT}/backups/$(hostname)"
-    mv "config_${TIMESTAMP}.zip" "${HOST_DIR}/"
 fi
 
 echo "Step 3.5: Creating new backup directory"
@@ -45,10 +41,17 @@ mkdir -p "${BACKUP_DIR}"
 
 echo "Step 4: Backing up configuration files"
 if [ -d "${CONFIG_PATH}" ]; then
-    rsync -a --info=progress2 "${CONFIG_PATH}/" "${BACKUP_DIR}/"
+    for entry in "${CONFIG_PATH}"/*; do
+        name=$(basename "${entry}")
+        echo "  - ${name}"
+        sudo rsync -a "${entry}" "${BACKUP_DIR}/"
+    done
     echo "Backup completed successfully!"
 else
     echo "Configuration directory ${CONFIG_PATH} does not exist. Skipping backup."
 fi
+
+echo "Step 5: Cleaning up backups older than 28 days"
+find "${MOUNT_POINT}/Backups/$(hostname)" -maxdepth 1 -name "config_*.zip" -mtime +28 -delete
 
 echo "Backup completed successfully!"

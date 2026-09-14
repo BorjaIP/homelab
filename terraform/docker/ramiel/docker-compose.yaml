@@ -6,11 +6,16 @@ services:
     container_name: transmission-openvpn
     hostname: transmission
     restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - 9091:9091
     environment:
       - PUID=${UID}
-      - PGID=${UID}
+      - PGID=${GID}
       - TZ=${TZ}
       - OPENVPN_PROVIDER=${OPENVPN_PROVIDER}
       - OPENVPN_CONFIG=${OPENVPN_CONFIG}
@@ -48,7 +53,7 @@ services:
     volumes:
       - ${STORAGE}/Transmission/complete:/data/complete
       - ${STORAGE}/Transmission/incomplete:/data/incomplete
-      - ./transmission:/data/transmission-home
+      - ./config/transmission:/data/transmission-home
 
   # Dozzle logs
   dozzle-agent:
@@ -56,6 +61,11 @@ services:
     container_name: dozzle-agent
     restart: always
     command: agent
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:

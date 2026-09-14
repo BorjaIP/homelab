@@ -5,6 +5,11 @@ services:
     container_name: uptimekuma
     hostname: uptimekuma
     restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - 3001:3001
     volumes:
@@ -21,6 +26,11 @@ services:
     container_name: dozzle
     hostname: dozzle
     restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     security_opt:
       - no-new-privileges:true
     environment:
