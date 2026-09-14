@@ -5,8 +5,11 @@ api:
   insecure: true
   dashboard: true
 log:
-  level: DEBUG
-  # format: common
+  level: INFO
+  format: common
+accessLog:
+  format: common
+  bufferingSize: 100
 entryPoints:
   web:
     address: ":80"

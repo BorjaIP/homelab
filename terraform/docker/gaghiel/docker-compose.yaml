@@ -1,7 +1,7 @@
 # Reverse Proxy and Tunnels
 services:
   traefik:
-    image: traefik:v3.4.0
+    image: traefik:v3.7.13
     container_name: traefik
     hostname: traefik
     restart: always
@@ -14,9 +14,13 @@ services:
       - 853:853
     environment:
       - TZ=${TZ}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/traefik/logs:/var/log/traefik/
       - ./config/traefik/acme.json:/acme.json
       - ./config/traefik/config.yaml:/config.yaml:ro
       - ./config/traefik/routers/:/etc/traefik/
