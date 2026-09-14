@@ -44,34 +44,19 @@ Use the generated public key in `user-data` for automatic authentication setup.
 
 ## 🌐 Proxy Configuration (Traefik)
 
-Using [traefik-kop](https://github.com/jittering/traefik-kop), each VM runs an agent that:
+Traefik runs as a single instance on the `gaghiel` VM (206) and routes every `*.home` domain to the services running on the other VMs. Since each service lives on a different Docker host, Traefik's `docker` label provider can't see them (it only discovers containers on its own daemon), so routing is configured through the **file provider** instead: one static YAML file per VM under [`terraform/docker/gaghiel/routers/`](terraform/docker/gaghiel/routers), each defining a `router` + `service` pair pointing at the target VM's IP:port.
 
-- Registers itself with the main Traefik instance
-- Sends its routing configuration dynamically
-
-This enables:
-
-- Auto-discovery of services
-- Clean URLs and HTTPS support
-- Centralized control over routing logic
+Pi-hole (running on the Raspberry Pi) resolves every `*.home` hostname to `gaghiel`'s IP, and is set as the DNS server on the router so LAN devices go through it automatically.
 
 ```text
-                       
-                      +-------------------------+         +---------------------0----+
-                      | +---------------------+ |         | +---------------------+  |
-                      | |                     | |         | |                     |  |
-+---------+     :443  | |  +---------+        | | :8088   | |  +------------+     |  |
-|   WAN   |--------------->| traefik |<-------------------->|  | svc-nginx  |     |  |
-+---------+           | |  +---------+        | |         | |  +------------+     |  |
-                      | |       |             | |         | |                     |  |
-                      | |  +---------+        | |         | |  +-------------+    |  |
-                      | |  |  redis  |<-------------------->|  | traefik-kop |    |  |
-                      | |  +---------+        | |         | |  +-------------+    |  |
-                      | |             docker1 | |         | |             docker2 |  |
-                      | +---------------------+ |         | +---------------------+  |
-                      |                     vm1 |         |                    vm2   |
-                      +-------------------------+         +--------------------------+
++---------+     :80    +--------------------+          +--------------------+
+|   LAN   |----------->|  traefik (gaghiel) |--------->|  svc (other VM)    |
++---------+            +--------------------+          +--------------------+
+                          routers/*.yaml
+                          (file provider)
 ```
+
+> **Future option:** [traefik-kop](https://github.com/jittering/traefik-kop) lets each VM run a small agent that publishes standard Docker-label routing config to a shared Redis, so Traefik could pick up services automatically instead of the manual YAML files — worth revisiting if the number of services/VMs grows enough to justify the extra containers.
 
 ## 📁 NFS Configuration
 

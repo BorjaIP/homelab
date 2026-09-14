@@ -128,17 +128,6 @@ services:
       start_period: 30s
       retries: 3
 
-  # traefik-kop:
-  #   image: ghcr.io/jittering/traefik-kop:0.16
-  #   container_name: traefik-kop
-  #   hostname: traefik-kop
-  #   restart: always
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   environment:
-  #     - "REDIS_ADDR=${REDIS_ADDR}"
-  #     - "BIND_IP=${SHAMSHEL_IP}"
-
   # Dozzle logs
   dozzle-agent:
     image: amir20/dozzle:v10.10.0

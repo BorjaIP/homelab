@@ -43,14 +43,3 @@ services:
       timeout: 30s
       retries: 5
       start_period: 30s
-
-  # traefik-kop:
-  #   image: ghcr.io/jittering/traefik-kop:0.16
-  #   container_name: traefik-kop
-  #   hostname: traefik-kop
-  #   restart: always
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   environment:
-  #     - "REDIS_ADDR=${REDIS_ADDR}"
-  #     - "BIND_IP=${SAHAQUIEL_IP}"
