@@ -113,12 +113,6 @@
       href: http://nextcloud.home
       siteMonitor: http://nextcloud.home
       statusStyle: "dot"
-  - Filebrowser:
-      icon: filebrowser.svg
-      description: File management and sharing
-      href: http://filebrowser.home
-      siteMonitor: http://filebrowser.home
-      statusStyle: "dot"
   - Open WebUI:
       icon: open-webui.svg
       description: Open WebUI for AI models

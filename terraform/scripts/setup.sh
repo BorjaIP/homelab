@@ -52,11 +52,8 @@ case "$1" in
         ;;
     tabris)
         echo "Step 4.5: Copying nextcloud configuration"
-        mkdir -p "${CONFIG_PATH}/nextcloud"
-        sudo chown -R "33:33" "${CONFIG_PATH}/nextcloud"
-        mkdir -p "${CONFIG_PATH}/before-starting"
-        rsync -a --remove-source-files --delete "/home/${USER}/config.sh" "${CONFIG_PATH}/before-starting/config.sh"
-        sudo chmod +x "${CONFIG_PATH}/before-starting/config.sh"
+        mkdir -p "${CONFIG_PATH}/nextcloud-html" "${CONFIG_PATH}/nextcloud-config"
+        sudo chown -R "33:33" "${CONFIG_PATH}/nextcloud-html" "${CONFIG_PATH}/nextcloud-config"
         ;;
 esac
 
