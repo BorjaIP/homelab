@@ -123,3 +123,7 @@ crash.log
 # IDEs
 .idea/
 .vscode/
+
+# gentle-ai generated
+.atl/
+.odd/
