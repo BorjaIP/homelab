@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homelab Stack · Exploded axonometric</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #bf4520;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 1000px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Exploded axonometric · Diagram Design</p>
+    <h1>Homelab Stack — From silicon to containers</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1000 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="exploded-title exploded-desc">
+        <title id="exploded-title">Homelab Stack — From silicon to containers</title>
+        <desc id="exploded-desc">Exploded axonometric view of the homelab stack showing five physical layers from bare metal hardware through Proxmox, VMs, Docker, and applications, with VMs as the focal layer.</desc>
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <g data-exploded data-origin="360 432" data-gap="72">
+  <line data-role="trace" x1="200" y1="492" x2="200" y2="140" stroke="rgba(45,49,66,0.30)" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line data-role="trace" x1="520" y1="492" x2="520" y2="140" stroke="rgba(45,49,66,0.30)" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <g data-part="part-0" data-name="Bare Metal" data-focal="false">
+    <path d="M 210 497 A 14.14 7.07 0 0 1 210 487 L 350 417 A 14.14 7.07 0 0 1 370 417 L 510 487 A 14.14 7.07 0 0 1 510 497 L 370 567 A 14.14 7.07 0 0 1 350 567 L 210 497 Z" fill="#ffffff"/>
+    <path d="M 350 417 L 210 487 L 210 507 L 350 437 Z" fill="rgba(45,49,66,0.07)"/>
+    <path d="M 510 497 L 370 567 L 370 587 L 510 517 Z" fill="rgba(45,49,66,0.15)"/>
+    <path d="M 350 417 A 14.14 7.07 0 0 1 370 417 L 510 487 A 14.14 7.07 0 0 1 510 497 L 370 567 A 14.14 7.07 0 0 1 350 567" fill="none" stroke="rgba(45,49,66,0.55)" stroke-width="0.8"/>
+    <path data-role="silhouette" d="M 205.86 487 A 14.14 7.07 0 0 1 210 482 L 350 417 A 14.14 7.07 0 0 1 370 417 L 510 482 A 14.14 7.07 0 0 1 514.14 487 L 514.14 512 A 14.14 7.07 0 0 0 510 517 L 370 587 A 14.14 7.07 0 0 0 350 587 L 210 517 A 14.14 7.07 0 0 0 205.86 512 Z" fill="none" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+    <g data-role="label">
+      <line data-role="leader" x1="528" y1="507" x2="568" y2="507" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <circle cx="522" cy="507" r="2" fill="#2d3142"/>
+      <text data-role="name" x="580" y="506" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">Bare Metal</text>
+      <text x="580" y="522" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" letter-spacing="0.08em">Raspberry Pi · x86 Host</text>
+    </g>
+  </g>
+  <g data-part="part-1" data-name="Hypervisor" data-focal="false">
+    <path d="M 210 409 A 14.14 7.07 0 0 1 210 399 L 350 329 A 14.14 7.07 0 0 1 370 329 L 510 399 A 14.14 7.07 0 0 1 510 409 L 370 479 A 14.14 7.07 0 0 1 350 479 L 210 409 Z" fill="#ffffff"/>
+    <path d="M 350 329 L 210 399 L 210 415 L 350 345 Z" fill="rgba(45,49,66,0.07)"/>
+    <path d="M 510 409 L 370 479 L 370 495 L 510 425 Z" fill="rgba(45,49,66,0.15)"/>
+    <path d="M 350 329 A 14.14 7.07 0 0 1 370 329 L 510 399 A 14.14 7.07 0 0 1 510 409 L 370 479 A 14.14 7.07 0 0 1 350 479" fill="none" stroke="rgba(45,49,66,0.55)" stroke-width="0.8"/>
+    <path data-role="silhouette" d="M 205.86 399 A 14.14 7.07 0 0 1 210 394 L 350 329 A 14.14 7.07 0 0 1 370 329 L 510 394 A 14.14 7.07 0 0 1 514.14 399 L 514.14 420 A 14.14 7.07 0 0 0 510 425 L 370 495 A 14.14 7.07 0 0 0 350 495 L 210 425 A 14.14 7.07 0 0 0 205.86 420 Z" fill="none" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+    <g data-role="label">
+      <line data-role="leader" x1="528" y1="417" x2="568" y2="417" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <circle cx="522" cy="417" r="2" fill="#2d3142"/>
+      <text data-role="name" x="580" y="416" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">Hypervisor</text>
+      <text x="580" y="432" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" letter-spacing="0.08em">Proxmox VE · KVM · LXC</text>
+    </g>
+  </g>
+  <g data-part="part-2" data-name="Virtual Machines" data-focal="true">
+    <path d="M 210 321 A 14.14 7.07 0 0 1 210 311 L 350 241 A 14.14 7.07 0 0 1 370 241 L 510 311 A 14.14 7.07 0 0 1 510 321 L 370 391 A 14.14 7.07 0 0 1 350 391 L 210 321 Z" fill="rgba(191,69,32,0.10)"/>
+    <path d="M 350 241 L 210 311 L 210 327 L 350 257 Z" fill="rgba(191,69,32,0.20)"/>
+    <path d="M 510 321 L 370 391 L 370 407 L 510 337 Z" fill="rgba(191,69,32,0.32)"/>
+    <path d="M 350 241 A 14.14 7.07 0 0 1 370 241 L 510 311 A 14.14 7.07 0 0 1 510 321 L 370 391 A 14.14 7.07 0 0 1 350 391" fill="none" stroke="rgba(191,69,32,0.70)" stroke-width="0.8"/>
+    <path data-role="silhouette" d="M 205.86 311 A 14.14 7.07 0 0 1 210 306 L 350 241 A 14.14 7.07 0 0 1 370 241 L 510 306 A 14.14 7.07 0 0 1 514.14 311 L 514.14 332 A 14.14 7.07 0 0 0 510 337 L 370 407 A 14.14 7.07 0 0 0 350 407 L 210 337 A 14.14 7.07 0 0 0 205.86 332 Z" fill="none" stroke="#bf4520" stroke-width="1.2" stroke-linejoin="round"/>
+    <g data-role="label">
+      <line data-role="leader" x1="528" y1="329" x2="568" y2="329" stroke="rgba(191,69,32,0.60)" stroke-width="0.8"/>
+      <circle cx="522" cy="329" r="2" fill="#bf4520"/>
+      <text data-role="name" x="580" y="328" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">Virtual Machines</text>
+      <text x="580" y="344" fill="#bf4520" font-size="10" font-family="'Geist Mono', monospace" letter-spacing="0.08em">Sachiel · Shamshel · Ramiel · Gaghiel · Sahaquiel · Ireul</text>
+    </g>
+  </g>
+  <g data-part="part-3" data-name="Docker Runtime" data-focal="false">
+    <path d="M 210 233 A 14.14 7.07 0 0 1 210 223 L 350 153 A 14.14 7.07 0 0 1 370 153 L 510 223 A 14.14 7.07 0 0 1 510 233 L 370 303 A 14.14 7.07 0 0 1 350 303 L 210 233 Z" fill="#ffffff"/>
+    <path d="M 350 153 L 210 223 L 210 239 L 350 169 Z" fill="rgba(45,49,66,0.07)"/>
+    <path d="M 510 233 L 370 303 L 370 319 L 510 249 Z" fill="rgba(45,49,66,0.15)"/>
+    <path d="M 350 153 A 14.14 7.07 0 0 1 370 153 L 510 223 A 14.14 7.07 0 0 1 510 233 L 370 303 A 14.14 7.07 0 0 1 350 303" fill="none" stroke="rgba(45,49,66,0.55)" stroke-width="0.8"/>
+    <path data-role="silhouette" d="M 205.86 223 A 14.14 7.07 0 0 1 210 218 L 350 153 A 14.14 7.07 0 0 1 370 153 L 510 218 A 14.14 7.07 0 0 1 514.14 223 L 514.14 244 A 14.14 7.07 0 0 0 510 249 L 370 319 A 14.14 7.07 0 0 0 350 319 L 210 249 A 14.14 7.07 0 0 0 205.86 244 Z" fill="none" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+    <g data-role="label">
+      <line data-role="leader" x1="528" y1="241" x2="568" y2="241" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <circle cx="522" cy="241" r="2" fill="#2d3142"/>
+      <text data-role="name" x="580" y="240" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">Docker Runtime</text>
+      <text x="580" y="256" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" letter-spacing="0.08em">Docker Engine per VM</text>
+    </g>
+  </g>
+  <g data-part="part-4" data-name="Applications" data-focal="false">
+    <path d="M 210 145 A 14.14 7.07 0 0 1 210 135 L 350 65 A 14.14 7.07 0 0 1 370 65 L 510 135 A 14.14 7.07 0 0 1 510 145 L 370 215 A 14.14 7.07 0 0 1 350 215 L 210 145 Z" fill="#ffffff"/>
+    <path d="M 350 65 L 210 135 L 210 151 L 350 81 Z" fill="rgba(45,49,66,0.07)"/>
+    <path d="M 510 145 L 370 215 L 370 231 L 510 161 Z" fill="rgba(45,49,66,0.15)"/>
+    <path d="M 350 65 A 14.14 7.07 0 0 1 370 65 L 510 135 A 14.14 7.07 0 0 1 510 145 L 370 215 A 14.14 7.07 0 0 1 350 215" fill="none" stroke="rgba(45,49,66,0.55)" stroke-width="0.8"/>
+    <path data-role="silhouette" d="M 205.86 135 A 14.14 7.07 0 0 1 210 130 L 350 65 A 14.14 7.07 0 0 1 370 65 L 510 130 A 14.14 7.07 0 0 1 514.14 135 L 514.14 156 A 14.14 7.07 0 0 0 510 161 L 370 231 A 14.14 7.07 0 0 0 350 231 L 210 161 A 14.14 7.07 0 0 0 205.86 156 Z" fill="none" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+    <g data-role="label">
+      <line data-role="leader" x1="528" y1="153" x2="568" y2="153" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <circle cx="522" cy="153" r="2" fill="#2d3142"/>
+      <text data-role="name" x="580" y="152" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist', sans-serif">Applications</text>
+      <text x="580" y="168" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" letter-spacing="0.08em">Plex · Traefik · Dozzle · Sonarr · Homepage</text>
+    </g>
+  </g>
+  <text x="280" y="596" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">FOCAL LAYER</text>
+  <text x="400" y="596" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif" font-style="italic">Virtual Machines layer is the focal point — named after Evangelion Angels, provisioned by Terraform.</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

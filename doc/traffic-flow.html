@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traffic Flow & Observability</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #bf4520;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1200px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 800px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Diagram Design</p>
+    <h1>Traffic flow & observability</h1>
+
+    <svg viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="traffic-title traffic-desc">
+      <title id="traffic-title">Traffic flow and observability in the homelab</title>
+      <desc id="traffic-desc">Architecture diagram showing DNS resolution through Pi-hole, HTTP routing through Traefik, service delivery to Docker VMs, and log aggregation into a central Dozzle server.</desc>
+      <defs>
+        <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+        </pattern>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+      <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+      <!-- ===== ARROWS (drawn before nodes) ===== -->
+
+      <!-- LAN -> Pi-hole (DNS query) -->
+      <line x1="100" y1="240" x2="100" y2="144" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- LAN -> Traefik (HTTP) -->
+      <line x1="160" y1="272" x2="260" y2="272" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+
+      <!-- Pi-hole -> LAN (DNS response, dashed) -->
+      <line x1="120" y1="144" x2="120" y2="240" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- Pi-hole -> Traefik (DNS resolve *.home) -->
+      <path d="M 160,112 H 324 Q 332,112 332,120 V 240" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- Traefik -> Media (plex.home) -->
+      <path d="M 332,240 V 152 H 592 V 144" fill="none" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+
+      <!-- Traefik -> Download (transmission.home) -->
+      <line x1="404" y1="272" x2="520" y2="272" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+
+      <!-- Traefik -> Utils (ha.home) -->
+      <path d="M 332,304 V 392 H 592 V 400" fill="none" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+
+      <!-- Media -> Monitoring (logs, dashed) -->
+      <path d="M 664,112 H 672 Q 680,112 680,120 V 376 H 316 V 400" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- Download -> Monitoring (logs, dashed) -->
+      <path d="M 664,272 H 688 Q 696,272 696,280 V 388 H 332 V 400" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- Utils -> Monitoring (logs, direct dashed) -->
+      <line x1="520" y1="432" x2="404" y2="432" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- ===== ARROW LABELS (masks + text) ===== -->
+
+      <!-- DNS query -->
+      <rect x="108" y="186" width="36" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="126" y="196" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DNS</text>
+
+      <!-- HTTP -->
+      <rect x="168" y="252" width="72" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="204" y="262" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HTTP :80</text>
+
+      <!-- *.home -->
+      <rect x="340" y="174" width="56" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="368" y="184" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">*.HOME</text>
+
+      <!-- plex.home -->
+      <rect x="432" y="140" width="72" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="468" y="150" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PLEX.HOME</text>
+
+      <!-- transmission.home -->
+      <rect x="432" y="252" width="96" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="480" y="262" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TRANS.HOME</text>
+
+      <!-- ha.home -->
+      <rect x="432" y="380" width="64" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="464" y="390" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HA.HOME</text>
+
+      <!-- logs (single label on the shared corridor) -->
+      <rect x="688" y="230" width="36" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="706" y="240" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">LOGS</text>
+
+      <!-- ===== NODES ===== -->
+
+      <!-- LAN Device (external) -->
+      <rect x="40" y="240" width="120" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="240" width="120" height="64" rx="6" fill="rgba(79,93,117,0.10)" stroke="#5a6580" stroke-width="1"/>
+      <rect x="48" y="248" width="28" height="12" rx="2" fill="transparent" stroke="rgba(90,101,128,0.40)" stroke-width="0.8"/>
+      <text x="62" y="257" fill="#5a6580" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+      <text x="100" y="276" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">LAN Device</text>
+      <text x="100" y="292" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Browser / App</text>
+
+      <!-- Pi-hole (DNS) -->
+      <rect x="40" y="80" width="120" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="80" width="120" height="64" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="48" y="88" width="36" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="66" y="97" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DNS</text>
+      <text x="100" y="116" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pi-hole</text>
+      <text x="100" y="132" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Raspberry Pi</text>
+
+      <!-- Traefik (focal) -->
+      <rect x="260" y="240" width="144" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="260" y="240" width="144" height="64" rx="6" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+      <rect x="268" y="248" width="40" height="12" rx="2" fill="transparent" stroke="rgba(191,69,32,0.50)" stroke-width="0.8"/>
+      <text x="288" y="257" fill="#bf4520" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PROXY</text>
+      <text x="332" y="276" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Traefik</text>
+      <text x="332" y="292" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Gaghiel · :80 :443</text>
+
+      <!-- Media VMs -->
+      <rect x="520" y="80" width="144" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="520" y="80" width="144" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="528" y="88" width="36" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="546" y="97" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">MEDIA</text>
+      <text x="592" y="116" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Media VMs</text>
+      <text x="592" y="132" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Sachiel · Plex · Jellyfin</text>
+
+      <!-- Download VMs -->
+      <rect x="520" y="240" width="144" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="520" y="240" width="144" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="528" y="248" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="544" y="257" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DL</text>
+      <text x="592" y="276" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Download VMs</text>
+      <text x="592" y="292" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Ramiel · Transmission</text>
+
+      <!-- Utils VMs -->
+      <rect x="520" y="400" width="144" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="520" y="400" width="144" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="528" y="408" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="544" y="417" fill="#2d3142" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">UTIL</text>
+      <text x="592" y="436" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Utils VMs</text>
+      <text x="592" y="452" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Ireul · HA · Immich</text>
+
+      <!-- Monitoring -->
+      <rect x="260" y="400" width="144" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="260" y="400" width="144" height="64" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="268" y="408" width="36" height="12" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="286" y="417" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OBS</text>
+      <text x="332" y="436" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Monitoring</text>
+      <text x="332" y="452" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Sahaquiel · Dozzle</text>
+
+      <!-- ===== LEGEND ===== -->
+      <line x1="40" y1="504" x2="760" y2="504" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="520" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+      <rect x="40" y="532" width="14" height="10" rx="2" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+      <text x="60" y="540" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Focal / reverse proxy</text>
+
+      <rect x="200" y="532" width="14" height="10" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="220" y="540" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Service VM</text>
+
+      <rect x="316" y="532" width="14" height="10" rx="2" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="336" y="540" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">DNS / Observability</text>
+
+      <rect x="476" y="532" width="14" height="10" rx="2" fill="rgba(79,93,117,0.10)" stroke="#5a6580" stroke-width="1"/>
+      <text x="496" y="540" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">External client</text>
+
+      <line x1="600" y1="537" x2="628" y2="537" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <text x="636" y="540" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">HTTP route</text>
+
+      <line x1="720" y1="537" x2="748" y2="537" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <text x="756" y="540" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Docker logs</text>
+    </svg>
+  </div>
+</body>
+</html>

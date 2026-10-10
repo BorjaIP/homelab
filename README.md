@@ -21,6 +21,8 @@
 
 This homelab infrastructure is centered on **Proxmox VE** using **Terraform** and **Docker** to provision VMs and Dockers (*names based in the Angels from Neon Genesis Evangelion*). Each VM serves a specific purpose like media, storage, or network automation.
 
+![Homelab Stack](doc/homelab-stack.svg)
+
 ## 🔧 System Configuration
 
 > Refer to the table below for an at-a-glance view of each configured and planned virtual machine and its corresponding role.
@@ -48,13 +50,7 @@ Traefik runs as a single instance on the `gaghiel` VM (206) and routes every `*.
 
 Pi-hole (running on the Raspberry Pi) resolves every `*.home` hostname to `gaghiel`'s IP, and is set as the DNS server on the router so LAN devices go through it automatically.
 
-```text
-+---------+     :80    +--------------------+          +--------------------+
-|   LAN   |----------->|  traefik (gaghiel) |--------->|  svc (other VM)    |
-+---------+            +--------------------+          +--------------------+
-                          routers/*.yaml
-                          (file provider)
-```
+![Traffic Flow & Observability](doc/traffic-flow.svg)
 
 > **Future option:** [traefik-kop](https://github.com/jittering/traefik-kop) lets each VM run a small agent that publishes standard Docker-label routing config to a shared Redis, so Traefik could pick up services automatically instead of the manual YAML files — worth revisiting if the number of services/VMs grows enough to justify the extra containers.
 
