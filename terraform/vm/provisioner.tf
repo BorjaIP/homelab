@@ -24,8 +24,8 @@ resource "terraform_data" "docker_compose_setup" {
     vm_uuid    = proxmox_vm_qemu.vm.smbios[0].uuid
     docker_dir = local.docker_dir_hash
     env        = filesha256("${path.root}/.env")
-    setup      = filesha256("${path.root}/scripts/setup.sh")
-    backup     = filesha256("${path.root}/scripts/backup.sh")
+    setup      = filesha256("${path.root}/../scripts/vm-setup.sh")
+    backup     = filesha256("${path.root}/../scripts/vm-backup.sh")
   }
 
   # Copying files
@@ -41,11 +41,11 @@ resource "terraform_data" "docker_compose_setup" {
 
   # Copying the setup script
   provisioner "file" {
-    source      = "${path.root}/scripts/setup.sh"
+    source      = "${path.root}/../scripts/vm-setup.sh"
     destination = "/home/bis/setup.sh"
   }
   provisioner "file" {
-    source      = "${path.root}/scripts/backup.sh"
+    source      = "${path.root}/../scripts/vm-backup.sh"
     destination = "/home/bis/backup.sh"
   }
 
