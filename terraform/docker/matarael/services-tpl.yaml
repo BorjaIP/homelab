@@ -35,11 +35,11 @@
       statusStyle: "dot"
 
 - Media:
-  - Plex:
-      icon: plex.svg
-      description: Your personal media an live TV
-      href: http://plex.home
-      siteMonitor: http://plex.home
+  - Jellyfin:
+      icon: jellyfin.svg
+      description: Your personal media server
+      href: http://jellyfin.home
+      siteMonitor: http://jellyfin.home
       statusStyle: "dot"
   - Navidrome:
       icon: navidrome.svg
@@ -53,19 +53,19 @@
       href: http://calibre.home
       siteMonitor: http://calibre.home
       statusStyle: "dot"
-  - Kavita:
-      icon: kavita.svg
-      description: Your personal reading comics/manga server
-      href: http://kavita.home
-      siteMonitor: http://kavita.home
-      statusStyle: "dot"
+  # - Kavita:
+  #     icon: kavita.svg
+  #     description: Your personal reading comics/manga server
+  #     href: http://kavita.home
+  #     siteMonitor: http://kavita.home
+  #     statusStyle: "dot"
 
 - Arr Stack:
-  - Overseerr:
-      icon: overseerr.svg
+  - Seerr:
+      icon: seerr.svg
       description: Request management and media discovery
-      href: http://overseerr.home
-      siteMonitor: http://overseerr.home
+      href: http://seerr.home
+      siteMonitor: http://seerr.home
       statusStyle: "dot"
   - Sonarr:
       icon: sonarr.svg

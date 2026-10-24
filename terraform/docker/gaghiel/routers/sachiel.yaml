@@ -1,8 +1,8 @@
 http:
   routers:
-    plex:
-      service: plex
-      rule: "Host(`plex.home`)"
+    jellyfin:
+      service: jellyfin
+      rule: "Host(`jellyfin.home`)"
       entrypoints:
         - "web"
     calibre:
@@ -11,10 +11,10 @@ http:
       entrypoints:
         - "web"
   services:
-    plex:
+    jellyfin:
       loadBalancer:
         servers:
-        - url: "http://192.168.1.203:32400"
+        - url: "http://192.168.1.203:8096"
     calibre:
       loadBalancer:
         servers:

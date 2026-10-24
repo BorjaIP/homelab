@@ -20,9 +20,9 @@ http:
       rule: "Host(`prowlarr.home`)"
       entrypoints:
         - "web"
-    overseerr:
-      service: overseerr
-      rule: "Host(`overseerr.home`)"
+    seerr:
+      service: seerr
+      rule: "Host(`seerr.home`)"
       entrypoints:
         - "web"
   services:
@@ -42,7 +42,7 @@ http:
       loadBalancer:
         servers:
         - url: "http://192.168.1.204:9696"
-    overseerr:
+    seerr:
       loadBalancer:
         servers:
         - url: "http://192.168.1.204:5055"
