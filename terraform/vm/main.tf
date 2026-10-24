@@ -1,7 +1,7 @@
 # https://registry.terraform.io/providers/Telmate/proxmox/latest/docs/resources/vm_qemu
 resource "proxmox_vm_qemu" "vm" {
   name        = var.name
-  desc        = var.description
+  description = var.description
   target_node = var.proxmox_host
 
   tags = "docker"
