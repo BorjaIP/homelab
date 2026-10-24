@@ -127,3 +127,6 @@ crash.log
 # gentle-ai generated
 .atl/
 .odd/
+
+# Proxmox MCP job-tracking database (created in the folder the MCP server starts from)
+proxmox-jobs.sqlite3*
