@@ -46,6 +46,10 @@ onto a non-empty `config/` without a human explicitly running a command for it.
 
 ## Two separate scripts, two separate directions
 
+In the repo they are `scripts/vm-setup.sh` and `scripts/vm-backup.sh` (the `vm-` prefix keeps them
+apart from the Proxmox host scripts in the same folder). Terraform copies them to each VM as
+`/home/bis/setup.sh` and `/home/bis/backup.sh`, which are the names used below and in the cron job.
+
 ### `setup.sh` — restore (NFS → VM), runs on provisioning
 
 Executed by Terraform's `null_resource.docker_compose_setup` provisioner every time a VM is
@@ -174,3 +178,26 @@ with no error anywhere. Hit this on both `gaghiel` and `ireul` (their first time
 crontab); confirmed by reproducing it locally before fixing it. Currently installed and verified
 (`crontab -l`) on `ramiel`, `gaghiel` and `ireul`; the rest will pick it up on their next
 `terraform apply`.
+
+## Docker waits for the NFS mount (stacks that use it)
+
+After a host reboot, Docker used to start containers about 17 s after boot without waiting for
+the NFS share, so a container with a bind mount under `/mnt/storage` could start against the
+empty local folder (empty libraries, uploads written to the VM disk). `setup.sh` now has a
+"Step 5.5" that detects whether the VM's `docker-compose.yaml` references `${STORAGE}` or
+`/mnt/storage` and, if so, installs a systemd drop-in:
+
+```
+/etc/systemd/system/docker.service.d/10-nfs.conf
+[Unit]
+RequiresMountsFor=/mnt/storage
+```
+
+Docker then starts only after `mnt-storage.mount` succeeded. It is a hard dependency on purpose:
+if the NFS is down, those stacks do not start rather than start on the wrong disk. Stacks that do
+not use the NFS (gaghiel/Traefik, matarael/homepage, sahaquiel/Uptime Kuma, sandalphon/VPN) do not
+get it, so they keep running when israfel is down (Uptime Kuma must keep alerting).
+
+Applied by hand on 2026-10-24 to the running VMs that use it: sachiel, shamshel, ramiel, ireul and
+tabris (`daemon-reload` only; Docker and the containers were not restarted). Check with
+`systemctl show docker -p RequiresMountsFor`.

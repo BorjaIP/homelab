@@ -189,7 +189,7 @@ Should list the root folders of your Box account.
 
 ## The script
 
-Location: `D:\Scripts\sync-backup.ps1`
+Location: `D:\Scripts\sync-backup.ps1` (copy kept in the repo as `scripts/sync-backup.ps1`)
 
 What it does:
 1. Checks that the source (`Z:\Photos\library\admin`) is reachable (i.e. the SMB drive is
