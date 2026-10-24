@@ -13,16 +13,25 @@ resource "proxmox_vm_qemu" "vm" {
   os_type = "cloud-init"
 
   # Boot process
-  onboot = true # VM startup after the PVE node starts
-  boot   = "order=virtio0"
+  start_at_node_boot = true # VM startup after the PVE node starts
+  boot               = "order=virtio0"
+
+  startup_shutdown {
+    order            = -1
+    startup_delay    = -1
+    shutdown_timeout = -1
+  }
 
   # VM CPU/RAM Settings
-  agent    = 1 # Activate QEMU agent for this VM
-  cores    = var.cpu_cores
-  sockets  = var.cpu_sockets
-  cpu_type = "host"
-  memory   = var.memory
-  balloon  = var.memory
+  agent   = 1 # Activate QEMU agent for this VM
+  memory  = var.memory
+  balloon = var.memory
+
+  cpu {
+    cores   = var.cpu_cores
+    sockets = var.cpu_sockets
+    type    = "host"
+  }
 
   scsihw = "virtio-scsi-pci"
 

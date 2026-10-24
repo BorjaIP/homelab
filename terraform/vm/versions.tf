@@ -1,10 +1,7 @@
 terraform {
-  required_version = ">= 1.3.0"
-
   required_providers {
     proxmox = {
-      source  = "Telmate/proxmox" # original version
-      version = "3.0.2-rc10"
+      source = "Telmate/proxmox" # the version is pinned once, in ../versions.tf
     }
   }
 }

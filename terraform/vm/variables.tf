@@ -1,48 +1,52 @@
 # Proxmox
 variable "proxmox_host" {
-  type    = string
-  default = null
+  type     = string
+  nullable = false
 }
 
 variable "template_name" {
-  type    = string
-  default = null
+  type     = string
+  nullable = false
 }
 
 # VM
 variable "name" {
-  type    = string
-  default = null
+  type     = string
+  nullable = false
 }
 
 variable "description" {
-  type    = string
-  default = null
+  type = string
 }
 
 variable "id" {
-  type    = number
-  default = 100
+  type     = number
+  nullable = false
 }
 
 variable "cpu_cores" {
-  type    = number
-  default = 2
+  type     = number
+  nullable = false
 }
 
 variable "cpu_sockets" {
-  type    = number
-  default = 1
+  type     = number
+  nullable = false
 }
 
 variable "memory" {
-  type    = number
-  default = 2048
+  type     = number
+  nullable = false
 }
 
 variable "disk_size" {
-  type    = string
-  default = "10G"
+  type     = string
+  nullable = false
+}
+
+variable "provision" {
+  type     = bool
+  nullable = false
 }
 
 variable "public_ssh_key" {

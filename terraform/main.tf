@@ -15,4 +15,5 @@ module "vms" {
   cpu_sockets = each.value.cpu_sockets
   memory      = each.value.memory
   disk_size   = each.value.disk_size
+  provision   = each.value.provision
 }
