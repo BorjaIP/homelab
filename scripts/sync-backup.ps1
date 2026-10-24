@@ -18,7 +18,7 @@
 # - LocalDest:      local disk destination (always synced)
 # - BoxDest:        Box destination (only synced when SyncToBox is $true)
 # - TrackBoxLimits: whether to also refresh a not-in-box-<Name>.txt listing files >250MB
-#                    (Box Personal/Free plan per-file limit - see doc/backup-3-2-1.md)
+#                    (Box Personal/Free plan per-file limit - see docs/backup-3-2-1.md)
 $Sources = [ordered]@{
     "1" = @{
         Name            = "Photos"
@@ -38,7 +38,7 @@ $Sources = [ordered]@{
 
 # ============================ Settings ============================
 $LogDir         = "D:\Scripts\logs"
-$SyncToBox      = $false   # cloud leg paused - see doc/backup-3-2-1.md. Flip to $true once a provider is ready.
+$SyncToBox      = $false   # cloud leg paused - see docs/backup-3-2-1.md. Flip to $true once a provider is ready.
 $BoxMaxTransfer = "25G"    # cap per run while Box free space is tight
 $BoxMaxFileSize = "250M"   # Box Personal/Free plan hard per-file limit
 

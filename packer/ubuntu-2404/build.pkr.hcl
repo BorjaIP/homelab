@@ -35,6 +35,6 @@ build {
 
   # Docker installation
   provisioner "shell" {
-    script = "scripts/install_docker.sh"
+    script = "../../scripts/packer-install-docker.sh"
   }
 }

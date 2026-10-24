@@ -60,6 +60,13 @@ esac
 echo "Step 5: Adding user to the Docker group"
 sudo usermod -aG docker "${USER}"
 
+echo "Step 5.5: Making Docker wait for the NFS mount (only if the stack uses it)"
+if grep -qE '\$\{STORAGE\}|/mnt/storage' "/home/${USER}/docker-compose.yaml"; then
+    sudo mkdir -p /etc/systemd/system/docker.service.d
+    printf '[Unit]\nRequiresMountsFor=%s\n' "${MOUNT_POINT}" | sudo tee /etc/systemd/system/docker.service.d/10-nfs.conf >/dev/null
+    sudo systemctl daemon-reload
+fi
+
 echo "Step 6: Deploying Docker Compose services"
 sudo docker compose -f "/home/${USER}/docker-compose.yaml" up -d
 
