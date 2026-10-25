@@ -58,15 +58,3 @@ resource "terraform_data" "docker_compose_setup" {
     ]
   }
 }
-
-# Keeps the existing state: the old null_resource becomes this one instead of being recreated
-moved {
-  from = null_resource.docker_compose_setup
-  to   = terraform_data.docker_compose_setup
-}
-
-# The resource now has count, so its address gets an index; same object, no recreation
-moved {
-  from = terraform_data.docker_compose_setup
-  to   = terraform_data.docker_compose_setup[0]
-}
