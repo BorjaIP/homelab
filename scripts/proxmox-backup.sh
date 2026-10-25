@@ -1,10 +1,11 @@
 #!/bin/bash
-# Backs up what Packer/Terraform cannot rebuild: the hand-made VMs (israfel, leliel) and the
-# Proxmox host configuration. Run as root ON the Proxmox host.
+# Backs up what Packer/Terraform cannot rebuild: the hand-made VMs (israfel, leliel, lilith) and
+# the Proxmox host configuration. Run as root ON the Proxmox host.
 #
 # Output goes next to the other VMs' config backups, one folder per machine name:
 #   <NFS mount>/Backups/israfel/vzdump/        vzdump-qemu-207-*.vma.zst  (storage bk-israfel)
 #   <NFS mount>/Backups/leliel/vzdump/         vzdump-qemu-212-*.vma.zst  (storage bk-leliel)
+#   <NFS mount>/Backups/lilith/vzdump/         vzdump-qemu-202-*.vma.zst  (storage bk-lilith)
 #   <NFS mount>/Backups/proxmox/               pve-host_<host name>_<timestamp>.tar.gz
 #
 # Usage: proxmox-backup.sh [all|vms|host]    (default: all)
@@ -15,8 +16,9 @@ set -euo pipefail
 NFS_MOUNT="${NFS_MOUNT:-/mnt/pve/nfs-storage}"
 BACKUP_ROOT="${NFS_MOUNT}/Backups"
 
-# VM IDs created by hand (not in Terraform): 207 = israfel (NFS server), 212 = leliel (HAOS).
-MANUAL_VMS=(207 212)
+# VM IDs installed by hand: 207 = israfel (NFS server), 212 = leliel (HAOS), 202 = lilith
+# (Hermes assistant; Terraform only creates the VM, provision = false).
+MANUAL_VMS=(207 212 202)
 
 # How many backups to keep per machine. VMs: Proxmox prunes the storage after a successful
 # backup. Host: pruned by this script, also only after the new archive was written.

@@ -93,7 +93,7 @@ services:
       retries: 3
 
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:2.3.0
+    image: lscr.io/linuxserver/prowlarr:2.6.5
     container_name: prowlarr
     restart: always
     environment:
