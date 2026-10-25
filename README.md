@@ -274,6 +274,11 @@ terraform destroy -target='module.vms["ramiel"]'
 - Plugins: Trakt, Open Subtitles, Intro Skipper
 - Details, versions and how it is applied: [docs/jellyfin.md](docs/jellyfin.md)
 
+### Seerr
+
+- Requests manager connected to Jellyfin, Radarr and Sonarr (it replaced Overseerr, which was tied to Plex)
+- Switch from Plex, reset procedure and pending items: [docs/seerr.md](docs/seerr.md)
+
 ### Windows Share with Rclone
 
 - Install [Rclone](https://rclone.org/install/)

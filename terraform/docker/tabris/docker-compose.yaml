@@ -1,22 +1,36 @@
 # Storage tools
 services:
-  # samba:
-  #   image: dperson/samba:amd64
-  #   container_name: samba
-  #   restart: always
-  #   ports:
-  #     - 137:137/udp
-  #     - 138:138/udp
-  #     - 139:139/tcp
-  #     - 445:445/tcp
-  #   network_mode: bridge
-  #   mem_limit: 512m
-  #   command: '-u "${SAMBA_USER};${SAMBA_PASS}" -s "Drive;/Drive;yes;no"'
-  #   stdin_open: true
-  #   tty: true
-  #   volumes:
-  #     - /usr/share/zoneinfo/Europe/Madrid:/etc/localtime
-  #     - ${STORAGE}:/Drive
+  # SMB share of the NAS disk for Windows (Z:). Documentation: docs/samba.md
+  # Image: https://github.com/ServerContainers/samba (smbd only: no wsdd2/avahi discovery needed)
+  samba:
+    image: ghcr.io/servercontainers/samba:smbd-only-a3.24.3-s4.23.8-r0
+    container_name: samba
+    restart: always
+    network_mode: host
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - TZ=${TZ}
+      # Login user; its files are written as UID 1001, never as root (NFS squashes root)
+      - ACCOUNT_${SAMBA_USER}=${SAMBA_PASS}
+      - UID_${SAMBA_USER}=1001
+      - SAMBA_CONF_WORKGROUP=WORKGROUP
+      - SAMBA_CONF_SERVER_STRING=Homelab NAS (tabris)
+      - SAMBA_CONF_MAP_TO_GUEST=Never
+      - SAMBA_GLOBAL_CONFIG_server_SPACE_min_SPACE_protocol=SMB3
+      - SAMBA_GLOBAL_CONFIG_server_SPACE_signing=mandatory
+      - SAMBA_GLOBAL_CONFIG_restrict_SPACE_anonymous=2
+      - SAMBA_GLOBAL_CONFIG_disable_SPACE_netbios=yes
+      # The disk is shared over NFS with other clients: no caching leases
+      - SAMBA_GLOBAL_CONFIG_oplocks=no
+      - SAMBA_GLOBAL_CONFIG_level2_SPACE_oplocks=no
+      - SAMBA_GLOBAL_CONFIG_kernel_SPACE_oplocks=no
+      - SAMBA_VOLUME_CONFIG_storage=[Storage]; path=/shares/Storage; valid users = ${SAMBA_USER}; guest ok = no; read only = no; browseable = yes; create mask = 0664; directory mask = 0775; vfs objects = ; veto files = /System Volume Information/; delete veto files = no
+    volumes:
+      - ${STORAGE}:/shares/Storage
 
   # Documentation: https://github.com/nextcloud/docker
   nextcloud:
