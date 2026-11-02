@@ -57,6 +57,9 @@ variable "vm_configs" {
 
     # false = Terraform only manages the VM itself (CPU, memory, disk, network). No Docker setup.
     provision = optional(bool, true)
+
+    # Proxmox tags, separated by semicolons (set it to what the Proxmox UI shows, or Terraform reports a change)
+    tags = optional(string, "docker")
   }))
 
   validation {

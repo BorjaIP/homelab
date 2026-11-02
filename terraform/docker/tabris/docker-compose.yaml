@@ -28,7 +28,7 @@ services:
       - SAMBA_GLOBAL_CONFIG_oplocks=no
       - SAMBA_GLOBAL_CONFIG_level2_SPACE_oplocks=no
       - SAMBA_GLOBAL_CONFIG_kernel_SPACE_oplocks=no
-      - SAMBA_VOLUME_CONFIG_storage=[Storage]; path=/shares/Storage; valid users = ${SAMBA_USER}; guest ok = no; read only = no; browseable = yes; create mask = 0664; directory mask = 0775; vfs objects = ; veto files = /System Volume Information/; delete veto files = no
+      - SAMBA_VOLUME_CONFIG_storage=[Storage]; path=/shares/Storage; valid users = ${SAMBA_USER}; guest ok = no; read only = no; browseable = yes; create mask = 0664; directory mask = 0775; vfs objects = ; veto files = /System Volume Information/images/; delete veto files = no
     volumes:
       - ${STORAGE}:/shares/Storage
 

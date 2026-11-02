@@ -119,6 +119,21 @@
       href: http://192.168.1.211:8080
       siteMonitor: http://192.168.1.211:8080
       statusStyle: "dot"
+  - Syncthing:
+      icon: syncthing.svg
+      description: Vault and file sync hub (israfel)
+      href: https://192.168.1.207:8384
+      # Self-signed certificate: Homepage skips verification on direct HTTPS requests, but not on the target of a redirect,
+      # so probing the http:// port (307 to https) shows HTTP 500. Probe the HTTPS URL directly.
+      siteMonitor: https://192.168.1.207:8384
+      statusStyle: "dot"
+  - Hermes:
+      icon: hermes.svg
+      description: Hermes Agent dashboard (lilith assistant)
+      href: http://192.168.1.202:9119
+      # /api/status answers without a login; the root page redirects to the login form.
+      siteMonitor: http://192.168.1.202:9119/api/status
+      statusStyle: "dot"
 
 - Networking:
   - Pihole:

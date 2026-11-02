@@ -16,4 +16,5 @@ module "vms" {
   memory      = each.value.memory
   disk_size   = each.value.disk_size
   provision   = each.value.provision
+  tags        = each.value.tags
 }

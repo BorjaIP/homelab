@@ -4,7 +4,7 @@ resource "proxmox_vm_qemu" "vm" {
   description = var.description
   target_node = var.proxmox_host
 
-  tags = "docker"
+  tags = var.tags
 
   # VM options
   vmid    = var.id

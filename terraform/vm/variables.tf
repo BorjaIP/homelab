@@ -49,6 +49,13 @@ variable "provision" {
   nullable = false
 }
 
+variable "tags" {
+  description = "Proxmox tags, separated by semicolons"
+  type        = string
+  default     = "docker"
+  nullable    = false
+}
+
 variable "public_ssh_key" {
   type      = string
   sensitive = true
