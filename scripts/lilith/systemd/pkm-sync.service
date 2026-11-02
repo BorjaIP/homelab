@@ -1,0 +1,7 @@
+[Unit]
+Description=Sync the pkm clone used by Hermes (commit, rebase, push)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/bis/.local/bin/pkm-sync.sh
