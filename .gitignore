@@ -130,3 +130,6 @@ crash.log
 
 # Proxmox MCP job-tracking database (created in the folder the MCP server starts from)
 proxmox-jobs.sqlite3*
+
+# ODD working notes (feature documents), local only
+odd/
