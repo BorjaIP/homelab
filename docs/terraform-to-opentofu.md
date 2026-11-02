@@ -1,162 +1,110 @@
-# Terraform → OpenTofu, and the Proxmox 9 provider problem
+# OpenTofu for the Proxmox VMs
 
-Result of testing the migration on a **copy** of `terraform/` (2026-10-24). Nothing in the real
-project was changed: no `tofu` command ran inside `terraform/`, no state was written, no `apply`.
+The VMs in `terraform/` are managed with **OpenTofu** (`tofu`) and the `telmate/proxmox` provider.
+OpenTofu reads the same state format and the same `.tf` files as Terraform, so the project needs no
+code rewrite. This guide covers the procedure: install, init, plan, apply one VM at a time, and
+rollback. Terraform stays installed only as the rollback path.
 
-## Is OpenTofu compatible with this project?
+## Prerequisites
 
-Yes, in practice. Checked on the copy with OpenTofu 1.13.2 (the official docs do not publish a
-version table, so this was tested rather than assumed):
-
-| Check | Result |
-|-------|--------|
-| Providers in the OpenTofu registry | `telmate/proxmox` (3.0.1-rc8 and newer) and `hashicorp/null` 3.2.4 are there |
-| `tofu init` | OK. Versions kept; `.terraform.lock.hcl` is rewritten to `registry.opentofu.org` with new hashes (expected, release binaries differ) |
-| State (format 4, last written by Terraform 1.11.3, 20 resources) | Read without errors |
-| `tofu plan` | Works (see below for what it proposes) |
-
-Notes for the real migration:
-
-- Back up first: `terraform.tfstate` and `terraform.tfstate.backup` (and commit the code). Both
-  files are gitignored, so copy them by hand.
-- `tofu init` changes `.terraform.lock.hcl`; commit the new one.
-- The first `tofu apply` re-stamps the state with OpenTofu's version. Rollback is: stop using
-  `tofu`, restore the backed-up state, `terraform init`, `terraform plan`.
-- Two environment variables point at files that do not exist or are shared with Terraform:
-  `TF_CLI_CONFIG_FILE=~/.config/terraform/terraformrc` (missing, only a warning) and
-  `TF_PLUGIN_CACHE_DIR=~/.cache/terraform`. Review them when installing OpenTofu.
+- OpenTofu 1.13.2 (`~/.local/bin/tofu`).
+- Provider `telmate/proxmox` `3.0.2-rc10` or newer, pinned once in `terraform/versions.tf`
+  (`terraform/vm/versions.tf` only declares the `source`). Provider `3.0.1-rc8` fails against
+  Proxmox VE 9 with `permissions for user/token root@pam are not sufficient ... [VM.Monitor]`,
+  because `VM.Monitor` no longer exists in Proxmox 9; `3.0.2-rc04` and newer do not require it.
+- `terraform/terraform.tfstate`, `terraform/terraform.tfstate.backup` and `terraform/terraform.tfvars`
+  are gitignored. Copy them by hand before the first `tofu` run.
 - Packer is a separate tool and is not affected.
 
-## The real blocker: provider `3.0.1-rc8` does not work with Proxmox 9
+## 1. Back up
 
-With Proxmox VE 9 both tools fail the same way (Terraform 1.15.9 was run as a control):
+Keep a private copy outside the repo (mode 700 for the folder, 600 for the files, with a
+`SHA256SUMS` file):
 
+```bash
+~/.local/share/homelab-backups/terraform-pre-opentofu-2026-10-24/
 ```
-Error: permissions for user/token root@pam are not sufficient, please provide also the
-following permissions that are missing: [VM.Monitor]
+
+It holds `terraform.tfstate`, `terraform.tfstate.backup`, `terraform.tfvars` and the old
+`.terraform.lock.hcl`. Commit the code as well.
+
+## 2. Install OpenTofu (no `sudo`)
+
+1. Download `tofu_1.13.2_linux_amd64.zip` from the OpenTofu GitHub release.
+2. Check it against the release `SHA256SUMS`.
+3. Copy the binary to `~/.local/bin/tofu`.
+
+There is no auto-update: to upgrade, repeat with the new version, or use the apt repository. Remove
+with `rm ~/.local/bin/tofu`.
+
+## 3. Initialise
+
+```bash
+cd terraform
+tofu init -upgrade
 ```
 
-`VM.Monitor` no longer exists in Proxmox 9 and the old provider demands it. The provider release
-notes say `3.0.2-rc04` (2025-08-23) "Remove VM.Monitor from required permissions for Proxmox 9
-compatibility". The newest is `3.0.2-rc10` (2026-08-30). The pin lives in two files:
-`terraform/versions.tf` and `terraform/vm/versions.tf`.
+`.terraform.lock.hcl` is rewritten to `registry.opentofu.org` with new hashes (the registry builds
+are not byte-identical to the Terraform ones). Commit the new lock. `hashicorp/null` has no version
+constraint, so `-upgrade` takes the newest; it leaves the lock once no `null_resource` remains in
+the state.
 
-## What the plan proposes with `3.0.2-rc10` (not applied)
+Two environment variables affect both tools:
 
-`Plan: 10 to add, 10 to change, 10 to destroy.`
+- `TF_CLI_CONFIG_FILE=~/.config/terraform/terraformrc`: the file must exist, otherwise every run
+  prints `Unable to open CLI configuration file`. An empty file with comments is valid, and it is
+  the place for CLI settings.
+- `TF_PLUGIN_CACHE_DIR=~/.cache/terraform`: shared by both tools. OpenTofu stores providers under
+  `registry.opentofu.org/`, so they do not collide.
 
-| Change | Meaning | Action needed |
-|--------|---------|---------------|
-| 10 × `null_resource.docker_compose_setup` replaced | By design: `triggers = { always_run = timestamp() }` re-runs `setup.sh` on every VM at every apply | None |
-| `lilith`: that `null_resource` is **tainted** | An earlier provisioning failed, and `terraform/docker/lilith/` does not exist, so the `file` provisioner would fail again | Decide what lilith is (create its folder or take it out of `terraform.tfvars`) |
-| **gaghiel** memory 2048 → 1024, **sachiel** 6144 → 4096, **sandalphon** 4096 → 2048 | `terraform.tfvars` was out of date: the VMs were enlarged by hand in Proxmox. An apply would have **shrunk their RAM** at the next restart | **Fixed 2026-10-24** in `terraform.tfvars` (it is not in git): gaghiel 1024 → 2048, sachiel 4096 → 6144, sandalphon 2048 → 4096. A new plan shows no memory or balloon change. All 10 VMs now match Proxmox |
-| 10 × `description = "Managed by Terraform."` | The module set the old `desc` argument, so the new `description` got the provider default and would have overwritten the VM notes | **Fixed 2026-10-24**: `desc` → `description` in `terraform/vm/main.tf`. The plan now writes your own notes into `description` and clears the old `desc` in the state; the text is the same |
-| 10 × `startup_shutdown` block removed (`-1` values), `automatic_reboot_severity = "error"` added | New attributes of the newer provider | None expected |
+## 4. Plan and read it
 
-Real memory today (Proxmox): lilith 4096, sachiel 6144, shamshel 4096, ramiel 2048, gaghiel 2048,
-sandalphon 4096, matarael 1024, sahaquiel 1024, ireul 8192, tabris 4096 MB.
+```bash
+tofu plan
+```
 
-## Provider bumped in the repo (2026-10-24)
+Before any apply, check that no VM is destroyed or replaced:
 
-`terraform/versions.tf` and `terraform/vm/versions.tf`: `3.0.1-rc8` → `3.0.2-rc10`.
-`.terraform.lock.hcl` is **not** updated yet: it is regenerated by `tofu init -upgrade` (or
-`terraform init -upgrade`) in the real directory, which belongs to the migration step below.
-Until then a plain `terraform plan` complains that the lock does not match the new version.
+```bash
+tofu plan | grep -E 'proxmox_vm_qemu.*(destroyed|replaced)'   # must print nothing
+```
 
-Validation on a scratch copy with OpenTofu 1.13.2: `validate` OK, `plan` exit 0, 0 errors.
+This read-before-apply check is the safeguard against deleting a VM; the code carries no
+`prevent_destroy` or `protection` guard.
 
-## What changed in the provider (3.0.1-rc9 → 3.0.2-rc10) and what helps you
+## 5. Apply one VM at a time
 
-Checked in the GitHub release notes of `Telmate/terraform-provider-proxmox`.
+`-target` on a single VM fails while a `moved` block is pending (`Error: Moved resource instances
+excluded by targeting`). When moves are pending, persist them once with a refresh-only apply, which
+writes only the state and never touches a VM:
 
-Affects your code now:
+1. Back up the state (the first write by OpenTofu re-stamps it):
+   `cp terraform/terraform.tfstate ~/.local/share/homelab-backups/terraform-pre-opentofu-2026-10-24/terraform.tfstate.before-refresh`
+2. `tofu apply -refresh-only` and answer `yes`. Expect `0 added, 0 changed, 0 destroyed`.
+3. Check `tofu state list`: it shows `terraform_data.docker_compose_setup` and no `null_resource`.
 
-| Change | Release | Effect here |
-|--------|---------|-------------|
-| Proxmox 9 compatibility (`VM.Monitor` no longer required) | rc04 | Unblocks every plan/apply against Proxmox 9 |
-| `desc` deprecated, use `description` | rc05 docs | Fixed in `vm/main.tf` |
-| `onboot` deprecated → `start_at_node_boot` | newer | Warning only. One line in `vm/main.tf` (line 16) |
-| `cpu_type` deprecated → `cpu { cpu_type = ... }` (new CPU schema) | rc09 of 3.0.1 | Warning only. Moving `cores`/`sockets` into the same block is optional; plan after changing it |
-| `Pool.Audit` added to the permissions the token needs | rc06 | Only matters if the API token stops being `root@pam` |
-| New `automatic_reboot_severity` attribute, `automatic_reboot = false` is now an error | rc05, rc09 | The plan adds `automatic_reboot_severity = "error"`; harmless |
+Then, per VM, with a saved plan so that exactly what was reviewed is what is applied:
 
-Useful for this homelab:
+1. `tofu plan -target='module.vms["sahaquiel"]' -out=/tmp/sahaquiel.tfplan`
+2. Review it. It must list only `proxmox_vm_qemu.vm will be updated in-place` and
+   `terraform_data.docker_compose_setup must be replaced`, with nothing destroyed or replaced on
+   the VM.
+3. Compare the VM's `docker-compose.yaml` with the repo. A difference (even only the order of a
+   volume line) makes `docker compose up -d` recreate that container. Preview it with
+   `docker compose up -d --dry-run`.
+4. `tofu apply /tmp/sahaquiel.tfplan`, then `rm /tmp/sahaquiel.tfplan`. A plan file holds the
+   provider credentials; never keep it in the repo.
+5. Verify: the same targeted plan says `No changes`, the containers of that VM are up, and their
+   start times did not change (unless step 3 predicted a recreate).
 
-- **`startup_shutdown { order, startup_delay, shutdown_timeout }`** (rc06): boot order in code. The
-  israfel-first rule is set by hand (`qm set 207 --startup order=1,up=60`) because israfel is not
-  in Terraform. The Terraform-managed VMs could declare theirs here, for example Traefik before
-  the apps. The plan currently removes an empty block with `-1` values (the defaults).
-- **`power_state`** (rc08): declare whether a VM is running or stopped instead of the old
-  `vm_state`. Your `lifecycle { ignore_changes = [vm_state] }` keeps working.
-- **`ignore` flag on `disk` / `disks`** (3.0.1-rc9): leave a disk out of Terraform's control. It
-  could replace the `ignore_changes = [disk]` workaround in `vm/main.tf`.
-- **Fixes that touch what you use**: `nameserver` showing a diff when the separator changes
-  (rc9), `cicustom` order diff (rc10), destroy failing when the VM is in HA (rc05), two VMs with
-  the same name creating only one (rc05), `vmid = 0` rejected (rc05), a newly created VM being
-  started when already running (rc10), slow state refresh (rc08).
-- **Not used here, available**: `proxmox_lxc_guest` (new LXC resource, experimental), VirtIO RNG
-  and TPM docs, SOCKS proxy for the API, LXC `host_managed` networks and interface info (PVE 9.1).
+Order, least critical first: sahaquiel (Uptime Kuma), matarael (Homepage), ramiel, sandalphon,
+shamshel, tabris, sachiel, ireul (Immich and the databases), gaghiel (Traefik, the reverse proxy
+for everything) last. Lilith is never provisioned (see "Per-VM options").
 
-Behaviour to remember: network `rate` is now in MB/s (rc08) and `network.id` needs the `net`
-prefix internally; your `network { id = 0 }` showed no change in the plan.
+## Provisioning design
 
-## Migration done (2026-10-24)
-
-The project now uses OpenTofu 1.13.2. No `apply` has been run: the state file is byte-for-byte
-the one written by Terraform 1.11.3 (checked with a hash before and after the first plan), so
-rolling back is still just "use `terraform` again with the backed-up lock".
-
-What was done, in order:
-
-1. **Backup** to a private folder outside the repo (mode 700, files 600, with `SHA256SUMS`):
-   `~/.local/share/homelab-backups/terraform-pre-opentofu-2026-10-24/` holding `terraform.tfstate`,
-   `terraform.tfstate.backup`, `terraform.tfvars` and the old `.terraform.lock.hcl`. This is **not**
-   the encrypted archive of the improvement plan; it is the minimum the official guide asks for.
-2. **Install** (no `sudo`): the release zip `tofu_1.13.2_linux_amd64.zip` was downloaded from
-   GitHub, checked against the release `SHA256SUMS`, and the binary copied to
-   `~/.local/bin/tofu`. There is no auto-update: to upgrade, repeat with the new version, or move
-   to the apt repository later. Remove with `rm ~/.local/bin/tofu`.
-3. **`tofu init -upgrade`** in `terraform/`. `.terraform.lock.hcl` was rewritten:
-   - `registry.terraform.io/telmate/proxmox 3.0.1-rc8` → `registry.opentofu.org/telmate/proxmox 3.0.2-rc10`
-   - `registry.terraform.io/hashicorp/null 3.2.4` → `registry.opentofu.org/hashicorp/null 3.3.2`
-     (`hashicorp/null` has no version constraint, so `-upgrade` took the newest. It disappears when
-     `null_resource` is replaced by `terraform_data`.)
-   - hashes change because the OpenTofu registry builds are not byte-identical. Commit the lock.
-4. **`tofu plan`** (read-only, `-lock=false`): `Plan: 10 to add, 10 to change, 10 to destroy.`
-   10 × `null_resource` replaced (lilith's one because it is tainted), 10 × `proxmox_vm_qemu`
-   updated in-place, **0 memory changes, 0 VM destroys**.
-
-Commands: always `tofu` from now on. Terraform 1.15.9 stays installed only as the rollback path.
-
-The shell used to print `Unable to open CLI configuration file ... terraformrc does not exist`.
-Cause: `~/.zshenv` (XDG block "Cloud & Infra", line 45) exports
-`TF_CLI_CONFIG_FILE="$XDG_CONFIG_HOME/terraform/terraformrc"`, the folder existed but the file did
-not. Fixed on 2026-10-24 by creating that file (comments only, valid and empty); `~/.zshenv` was
-not touched. Both `tofu` and `terraform` read it, so it is also the place for CLI settings later.
-`TF_PLUGIN_CACHE_DIR` (line 46) points to `~/.cache/terraform`, shared by both tools; OpenTofu
-stores its providers under `registry.opentofu.org/`, so they do not collide.
-
-Do **not** run `tofu apply` yet. It would reprovision all 10 VMs through the `timestamp()` trigger,
-deploy the uncommitted `docker/sachiel/docker-compose.yaml` edits, and **fail on lilith**, whose
-`docker/lilith/` folder does not exist. Lilith stays managed by Terraform on purpose (its CPU and
-memory are raised from `terraform.tfvars`); its provisioning is handled at the end of the plan.
-
-## Improvements, one at a time
-
-### 3.1 `prevent_destroy` and `protection` (tried and dropped, 2026-10-24)
-
-Tried in `terraform/vm/main.tf` and reverted the same day. Decision: the safeguard is to **read
-the `tofu plan` before every apply** and look for `destroy` / `must be replaced` on a
-`proxmox_vm_qemu`, not to add guards in the code. Nothing was applied, so Proxmox never had the
-change. The guard did work in a test (a VM deleted from `tfvars` made the plan fail with
-`Resource instance cannot be destroyed`), in case it is wanted again later.
-
-Checking the plan: `tofu plan | grep -E 'proxmox_vm_qemu.*(destroyed|replaced)'` must print nothing.
-
-### 3.2 `terraform_data` with hash triggers instead of `null_resource` + `timestamp()` (code done 2026-10-24, not applied)
-
-`terraform/vm/provisioner.tf`. Before, `triggers = { always_run = timestamp() }` made every plan
-recreate the 10 `null_resource` and every apply re-run `setup.sh` on every VM. Now:
+`terraform/vm/provisioner.tf` runs `setup.sh` on each VM through a `terraform_data` resource. It
+re-runs only when something it deploys changes:
 
 ```hcl
 resource "terraform_data" "docker_compose_setup" {
@@ -167,281 +115,107 @@ resource "terraform_data" "docker_compose_setup" {
     setup      = filesha256("${path.root}/../scripts/vm-setup.sh")
     backup     = filesha256("${path.root}/../scripts/vm-backup.sh")
   }
-  ...same connection and provisioners as before...
-}
-
-moved {
-  from = null_resource.docker_compose_setup
-  to   = terraform_data.docker_compose_setup
+  ...
 }
 ```
 
-What was verified (scratch copy of the real project, nothing applied):
+- A plan is quiet unless the compose files, `.env`, `vm-setup.sh`, `vm-backup.sh` or a rebuilt VM
+  change.
+- `smbios[0].uuid` is assigned by Proxmox at creation and is stable across edits, so an edited VM is
+  not re-provisioned and a rebuilt VM is. `replace_triggered_by = [proxmox_vm_qemu.vm]` is not used
+  because it also fires on in-place changes such as a memory edit.
+- Changes made by hand inside a VM are not overwritten at every apply. To re-run the setup on one
+  VM: `tofu apply -replace='module.vms["gaghiel"].terraform_data.docker_compose_setup'`.
+- The state stores the SHA-256 of `.env`, not its content.
+- Every VM receives the whole `.env`, Proxmox credentials included.
 
-- `fmt` and `validate` OK. `plan` exit 0.
-- `moved` works between the two resource types in OpenTofu 1.13: the plan prints
-  `(moved from module.vms["x"].null_resource.docker_compose_setup)` for all 10 and keeps lilith's
-  *tainted* mark. The state is reused, nothing is recreated by the move itself.
-- The first apply still re-provisions all 10 VMs **once**: `triggers_replace` goes from
-  `always_run = <timestamp>` to the hashes. That was going to happen anyway (`setup.sh` changed).
-- A toy configuration with the same `fileset` + `filesha256` pattern, applied for real:
-  first apply runs the provisioner once; the next plan is **`No changes`**; editing a file in the
-  watched folder replaces the resource and runs it again.
-- `replace_triggered_by = [proxmox_vm_qemu.vm]` was tried and **rejected**: in the toy it also
-  fires when the referenced resource changes in place, so editing a VM's memory would re-provision
-  it. `smbios[0].uuid` (assigned by Proxmox at creation, stable across edits) replaces it: a
-  rebuilt VM gets a new UUID and is provisioned again, an edited VM is not.
+## Per-VM options
 
-Behaviour that changes, on purpose:
+`terraform/terraform.tfvars` holds one `vm_configs` entry per VM. `terraform/variables.tf` defines
+the defaults and validations:
 
-- A plan is quiet unless something provisioned really changed (compose files, `.env`,
-  `vm-setup.sh`, `vm-backup.sh`, or a rebuilt VM).
-- Changes made by hand inside a VM are no longer overwritten at every apply. To re-run the setup
-  on one VM: `tofu apply -replace='module.vms["gaghiel"].terraform_data.docker_compose_setup'`.
-- `hashicorp/null` stays in `.terraform.lock.hcl` until the first apply has moved the state;
-  after that, the next `tofu init` drops it.
-- The hash of `.env` is stored in the state (a SHA-256, not the content).
-- Lilith: `docker/lilith/` does not exist, so `fileset` is empty and the plan works, but the
-  provisioning would still fail at apply. Handled last, as agreed.
+| Field | Default | Rule |
+|-------|---------|------|
+| `cpu_cores` | 2 | >= 1 |
+| `cpu_sockets` | 1 | >= 1 |
+| `memory` | 2048 (MiB) | >= 512 |
+| `disk_size` | `"10G"` | number followed by M, G or T |
+| `provision` | `true` | `false` skips `setup.sh`, SSH and the copy of `docker/<name>/` |
+| `id`, `name`, `description` | required | `id` unique, between 100 and 999999999; the key must equal `name` |
 
-## Applying one VM at a time
+Each validation error names the offending VM, for example
+`memory is in MiB and must be at least 512. Too small in: ramiel`. Run `tofu plan -refresh=false`
+to test a change to `terraform.tfvars` quickly.
 
-`-target` on a single VM fails while the `moved` block is pending
-(`Error: Moved resource instances excluded by targeting`), because the move affects all 10 VMs. So
-the state is migrated first, once, with a refresh-only apply, which writes only the state and
-never touches a VM. Tested on a scratch copy: `0 added, 0 changed, 0 destroyed`, the 10
-`null_resource` become 10 `terraform_data` and keep their old `always_run` trigger. After that a
-targeted plan shows only that VM's two resources.
+`provision = false` is for a VM that Terraform only creates and resizes. Lilith uses it: it is a
+hand-installed Ubuntu VM that runs the Hermes assistant at OS level, has no Docker, and has no
+`docker/lilith/` folder. With `count = var.provision ? 1 : 0` the resource address is
+`terraform_data.docker_compose_setup[0]`.
 
-1. Back up the state (the first write by OpenTofu re-stamps it):
-   `cp terraform/terraform.tfstate ~/.local/share/homelab-backups/terraform-pre-opentofu-2026-10-24/terraform.tfstate.before-refresh`
-2. Once: `tofu apply -refresh-only` and answer `yes`. Check that `tofu state list` shows 10
-   `terraform_data.docker_compose_setup` and no `null_resource`.
-3. Per VM, with a saved plan so that exactly what was reviewed is what is applied:
-   `tofu plan -target='module.vms["sahaquiel"]' -out=/tmp/sahaquiel.tfplan`
-   Review it: it must list only `proxmox_vm_qemu.vm will be updated in-place` and
-   `terraform_data.docker_compose_setup must be replaced`, and nothing destroyed or replaced on
-   the VM.
-4. `tofu apply /tmp/sahaquiel.tfplan`, then `rm /tmp/sahaquiel.tfplan` (a plan file holds the
-   provider credentials; never keep it in the repo).
-5. Check: the same targeted plan must now say `No changes`, and the containers of that VM are up.
+## Resizing a VM
 
-Suggested order, least critical first: sahaquiel (Uptime Kuma), matarael (Homepage), ramiel,
-sandalphon, shamshel, tabris, sachiel (its compose has the Jellyfin/Plex edits), ireul (Immich and
-the databases), gaghiel (Traefik, the reverse proxy for everything) last. **Skip lilith**: its
-provisioning fails until `docker/lilith/` exists.
+1. Edit `cpu_cores` / `memory` in `terraform.tfvars`.
+2. Plan, review, apply.
 
-### Log of the real applies
+Hotplug is `network,disk,usb` (no `cpu`, no `memory`), so Proxmox applies a CPU or RAM change only
+after a reboot, and `automatic_reboot = true` (the provider default) makes the apply reboot the VM
+by itself. Apply at a moment when the services on that VM can be interrupted, or set
+`automatic_reboot = false` and reboot manually (the new values stay pending in Proxmox until then).
+To change CPU or RAM without a reboot, enable hotplug first
+(`hotplug = "network,disk,usb,cpu,memory"` plus `numa = true`); it needs one reboot to take effect,
+and shrinking memory live is not reliable.
 
-**2026-10-24: state migrated and gaghiel applied (first VM).**
+Lilith's Hermes starts by itself after a reboot: it runs as the user systemd service
+`hermes-gateway.service` of `bis`, and `bis` has `Linger=yes`.
 
-- `tofu plan -refresh-only` + `tofu apply` of that saved plan: `0 added, 0 changed, 0 destroyed`.
-  Only new provider-schema fields were recorded (`ignore = false` on disks, `startup_shutdown`
-  with `-1` defaults). The 10 `null_resource` are now 10 `terraform_data`; the state is written by
-  OpenTofu 1.13.2. Copy of the state before: `~/.local/share/homelab-backups/terraform-pre-opentofu-2026-10-24/terraform.tfstate.before-refresh`.
-- Before applying, the files on the VM were compared with the repo (SHA-256). Everything matched
-  except `routers/tabris.yaml`: the VM still had a `filebrowser.home` router to
-  `192.168.1.217:8095`, which the repo removed in the "replace filebrowser with nextcloud" commit
-  and which tabris no longer runs. The apply removed that stale route (now 404), as intended.
-- Plan `module.vms["gaghiel"]` saved to a file, reviewed (2 resources, no VM destroyed), applied:
-  `Apply complete! Resources: 1 added, 1 changed, 1 destroyed.` `setup.sh` ran all steps.
-- Checked on the VM: Traefik **not restarted** (running since the host boot), files identical to
-  the repo, 12 hosts answer through Traefik (200/302/307/401), 0 Traefik errors in 5 minutes, no
-  Docker NFS drop-in (this stack does not use the NFS). Harmless leftovers in `/home/bis`: an empty
-  `routers/` folder (from `rsync --remove-source-files`) and `config_20260914094325.zip`.
-- Known residual: the targeted plan still shows `0 to add, 1 to change` because the provider
-  always reports `startup_shutdown { order = -1, startup_delay = -1, shutdown_timeout = -1 }`
-  and the configuration does not declare the block, so it tries to remove it every time (no effect
-  in Proxmox). Fix: declare the block explicitly with those values; it belongs to improvement 3.4.
+`terraform.tfvars` must match the real VM sizes in Proxmox; an apply otherwise resizes the VM to
+the file's values at the next restart. Real memory (MB): lilith 4096, sachiel 6144, shamshel 4096,
+ramiel 2048, gaghiel 2048, sandalphon 4096, matarael 1024, sahaquiel 1024, ireul 8192, tabris 4096.
 
-**2026-10-24: `startup_shutdown` declared; ireul, matarael and ramiel applied.**
+## Provider arguments in use
 
-- `terraform/vm/main.tf` now declares `startup_shutdown { order = -1, startup_delay = -1,
-  shutdown_timeout = -1 }` (Proxmox's defaults). The provider always reports that block; without
-  it every plan tried to remove it. Result: the gaghiel plan went from `0 to add, 1 to change` to
-  `No changes. Your infrastructure matches the configuration.`
-- Pre-checks before each apply (read-only, hashes only):
-  - `docker-compose.yaml` (and, on matarael, Homepage's `settings.yaml` and `widgets.yaml`) on the
-    VM equal the repo's, so `docker compose up -d` cannot change a container's definition.
-  - `.env` differs from the one on the VMs by **4 new variables** (`PROXMOX_DEV_MODE`,
-    `PROXMOX_HOST`, `PROXMOX_PORT`, `PROXMOX_VERIFY_SSL`, added for the Proxmox MCP). No value
-    changed, none is referenced by a compose file, and no compose file uses `env_file`, so no
-    container is affected. Side note: every VM receives the whole `.env`, Proxmox credentials
-    included (existing behaviour, see improvement 3.5).
-- Procedure per VM, with automatic brakes: save the plan, abort unless it holds exactly the VM
-  update-in-place plus the `terraform_data` replacement and the only VM attribute changes are
-  `desc`, `description` and `automatic_reboot_severity`; apply the saved plan; compare every
-  container's `StartedAt` before and after; re-plan.
-- Results, all three the same: `Apply complete! Resources: 1 added, 1 changed, 1 destroyed.`, every
-  `setup.sh` step OK (including "Step 4.5: Copying homepage configuration" on matarael and the
-  Docker NFS drop-in on ireul and ramiel), **containers identical start times (none recreated or
-  restarted)**, and the next plan `No changes`.
-- State of the rollout: gaghiel, ireul, matarael and ramiel are done and quiet. Left:
-  sahaquiel, sandalphon, shamshel, tabris, sachiel (its `docker-compose.yaml` has uncommitted
-  Jellyfin/Plex edits; compare before applying) and lilith (provisioning fails until
-  `docker/lilith/` exists). Full plan: `6 to add, 6 to change, 6 to destroy`.
-- Existing issue, unrelated: Homepage on matarael was `unhealthy` before and still is.
+`terraform/vm/main.tf` uses the current provider schema:
 
-**2026-10-24: sahaquiel, sandalphon and tabris applied.**
+| Argument | Note |
+|----------|------|
+| `description` | Writes the VM notes. The old `desc` argument is deprecated. |
+| `start_at_node_boot = true` | Replaces the deprecated `onboot`. |
+| `cpu { cores, sockets, type = "host" }` | One block, at most once. The top-level `cores`, `sockets` and `cpu_type` are deprecated and are not mixed with the block. |
+| `startup_shutdown { order = -1, startup_delay = -1, shutdown_timeout = -1 }` | Proxmox defaults. The provider always reports the block; declaring it avoids a diff in every plan. |
 
-- Same procedure and guards. Pre-check: `docker-compose.yaml` on the VM equal to the repo, `.env`
-  at the same old hash as the others (only the 4 new MCP variables differ).
-- Results: `Apply complete! Resources: 1 added, 1 changed, 1 destroyed.` ×3, all `setup.sh` steps
-  OK ("Step 4.5: Copying nextcloud configuration" on tabris), containers with **identical start
-  times** (2, 4 and 5; none recreated), next plan `No changes` for each. Nextcloud answers through
-  Traefik.
-- First attempt of the helper failed safely: the VM id was passed as part of the name, the plan
-  matched nothing and the guard aborted before applying (state serial unchanged).
-- **shamshel was not applied.** Its `docker-compose.yaml` on the VM differs from the repo by one
-  line: `${STORAGE}/Media/MediaCover:/config/MediaCover` sits at a different position in a volume
-  list. A `docker compose up -d --dry-run` with the repo file reports `lidarr  Recreate` (the other
-  five `Running`); with the live file everything is `Running`. Applying it restarts the Lidarr
-  container (config is in bind mounts, nothing is lost). Options: apply and accept the restart, or
-  align the repo file with the VM's order first.
-- Rollout state: done and quiet: gaghiel, ireul, matarael, ramiel, sahaquiel, sandalphon, tabris.
-  Left: shamshel (decision above), sachiel (uncommitted Jellyfin/Plex compose edits), lilith.
+`tofu validate` reports 0 errors and 0 warnings.
 
-**2026-10-24: shamshel applied; lilith reduced to "only the VM".**
+Available but unused:
 
-- **shamshel**: the repo's `docker-compose.yaml` differed from the VM's by the position of one
-  volume line (`${STORAGE}/Media/MediaCover:/config/MediaCover`). A `docker compose up -d
-  --dry-run` predicted `lidarr  Recreate` and the other five `Running`; the apply did exactly
-  that. Lidarr restarted (new start time), the other five containers kept theirs, next plan
-  `No changes`. Config lives in bind mounts, nothing was lost.
-- **lilith** is a hand-installed Ubuntu VM that runs the Hermes assistant at OS level; it has no
-  Docker. Terraform must only create it and let its CPU, RAM and disk be changed. New per-VM
-  option in `terraform.tfvars`:
+- `startup_shutdown` with real `order` / `startup_delay`: boot order in code. The israfel-first rule
+  is set by hand (`qm set 207 --startup order=1,up=60`) because israfel is not in Terraform.
+- `power_state`: declare whether a VM is running or stopped (the older `vm_state` is covered by
+  `lifecycle { ignore_changes = [vm_state] }`).
+- `ignore` flag on `disk` / `disks`: leaves a disk out of Terraform's control; it could replace the
+  `ignore_changes = [disk]` workaround in `vm/main.tf`.
+- `proxmox_lxc_guest` (experimental LXC resource).
+- `Pool.Audit` is part of the permissions the token needs; it matters only if the API token stops
+  being `root@pam`.
 
-  ```hcl
-  lilith = {
-    ...
-    provision = false   # default true
-  }
-  ```
+Network `rate` is in MB/s and `network.id` needs the `net` prefix internally; `network { id = 0 }`
+shows no diff.
 
-  - `variables.tf`: `provision = optional(bool, true)` in `vm_configs`; `main.tf` and
-    `vm/variables.tf` pass it down; `vm/provisioner.tf`: `count = var.provision ? 1 : 0` on the
-    `terraform_data`. With `false` no `setup.sh`, no SSH, no copying of `docker/<name>/` happens, and
-    the missing `docker/lilith/` folder no longer matters.
-  - `count` changes the resource address (`...docker_compose_setup[0]`), so a second `moved` block
-    in `provisioner.tf` maps the old address to `[0]`. The move was persisted once with a
-    `-refresh-only` plan/apply (`0 added, 0 changed, 0 destroyed`); state backup before it:
-    `.../terraform.tfstate.before-count-moves`.
-  - Applied to lilith: the VM updated in place (only `desc` → `description` and
-    `automatic_reboot_severity`, which Proxmox does not see) and its old, tainted `terraform_data`
-    destroyed (a state entry only: there is no destroy-time provisioner, nothing runs on the VM).
-    Checked: **same QEMU pid before and after (no restart)**, Proxmox config of VM 202 identical,
-    next plan `No changes`.
-- **Resizing lilith later** (edit `cpu_cores` / `memory` in `terraform.tfvars`, plan, apply):
-  - lilith's `hotplug` is `network,disk,usb` (no `cpu`, no `memory`), so Proxmox only applies a CPU
-    or RAM change after a reboot, and the VM has `automatic_reboot = true` (the provider default).
-    **An apply that changes CPU or RAM will reboot lilith by itself.** Plan it for a moment when
-    Hermes can be interrupted, or set `automatic_reboot = false` and reboot it yourself (the new
-    values then stay pending in Proxmox until that reboot).
-  - To change CPU or RAM without rebooting, enable hotplug on the VM first (`hotplug =
-    "network,disk,usb,cpu,memory"` plus `numa = true`); it needs one reboot to take effect and
-    shrinking memory live is not reliable. Not done: tell me if you want it.
-  - Decision (2026-10-24): accepted. When CPU or RAM change, lilith reboots at apply time and
-    Hermes is down until it is back; `automatic_reboot` stays at its default (`true`).
-  - Hermes comes back by itself after a reboot (checked): it runs as the user systemd service
-    `hermes-gateway.service` of `bis` (`default.target.wants`, so enabled) and `bis` has
-    `Linger=yes`, so it starts at boot without a login. It was seen starting at 20:20:00, right
-    after lilith booted (20:19:48) during the Proxmox 9 reboot. lilith also runs a Docker
-    container, `corefit-booker`, with restart policy `unless-stopped`; Terraform does not manage it
-    (`provision = false`).
-  - The same reboot rule applies to every other VM.
-- Rollout state: all done and quiet except **sachiel** (uncommitted Jellyfin/Plex compose edits;
-  compare before applying). Plan left: `1 to add, 1 to change, 1 to destroy` (sachiel only).
+## Rollback
 
-### 3.3 Typed variables, defaults and validations (done 2026-10-24, nothing to apply)
+Until the first `tofu apply`, the state file is byte-for-byte the one Terraform wrote (compare a
+hash before and after `tofu plan`). The first write by OpenTofu re-stamps it with OpenTofu's
+version. To roll back:
 
-No infrastructure change: the real plan stays `No changes`, the state and the lock file are
-untouched. Four pieces:
+1. Stop using `tofu`.
+2. Restore the backed-up state and the old `.terraform.lock.hcl` from the backup folder.
+3. `terraform init`, then `terraform plan`.
 
-1. **Defaults in `vm_configs`** (`terraform/variables.tf`): `cpu_cores` 2, `cpu_sockets` 1,
-   `memory` 2048 (MiB), `disk_size` "10G", `provision` true. They are the values the `vm` module
-   used to carry, so nothing changes for the existing entries, and an entry in `terraform.tfvars`
-   can now leave them out. `id`, `name` and `description` stay required.
-2. **Validations** on `vm_configs`, each error naming the offending VM:
-   - the key equals `name` (`docker/<name>/` and the state address depend on it);
-   - ids are unique (the message lists the repeated id) and between 100 and 999999999;
-   - `memory` >= 512, `cpu_cores` and `cpu_sockets` >= 1;
-   - `disk_size` is a number followed by M, G or T (`"40G"`).
-3. **`vm/variables.tf`**: the dead defaults (`id = 100`, `name = null`, `description = null`...)
-   are gone and the inputs that must have a value are `nullable = false`, so a missing value fails
-   at the module boundary instead of deep inside the provider. `public_ssh_key` and
-   `private_ssh_key_file` keep their `null` default (they are reworked in improvement 3.5).
-4. **`vm/versions.tf`**: the provider version is pinned once, in `terraform/versions.tf`; the
-   module only declares the `source`. The next bump touches one file.
+## Troubleshooting
 
-Tested on a scratch copy with deliberately broken `terraform.tfvars` files (each refused, with
-`tofu plan -refresh=false`):
-
-| Mistake | Message |
-|---------|---------|
-| ramiel with id 203 (sachiel's) | `Every vm_configs entry needs a unique id. Repeated id(s): 203` |
-| ramiel with memory 256 | `memory is in MiB and must be at least 512. Too small in: ramiel` |
-| ireul with disk_size "40" | `disk_size must be a number followed by M, G or T ... Invalid in: ireul` |
-| gaghiel with id 50 | `A Proxmox VM id must be between 100 and 999999999. Invalid in: gaghiel` |
-| key `tabris` with name "tabrisx" | `The key of each vm_configs entry must equal its name ... Mismatch in: tabris` |
-| gaghiel with cpu_cores 0 | `cpu_cores and cpu_sockets must be at least 1. Invalid in: gaghiel` |
-
-Positive test: with `cpu_sockets` and `disk_size` removed from gaghiel and `memory` from ramiel
-(their defaults equal the real values) the plan is `No changes`.
-
-### 3.4 New provider arguments (done and applied 2026-10-24 on the 10 VMs)
-
-`terraform/vm/main.tf`:
-
-- `onboot = true` → `start_at_node_boot = true`.
-- `cores`, `sockets` and `cpu_type` (all deprecated in provider 3.0.2-rc10, like `numa`, `vcpus`
-  and `onboot`) → one `cpu` block, which the provider allows at most once:
-
-  ```hcl
-  cpu {
-    cores   = var.cpu_cores
-    sockets = var.cpu_sockets
-    type    = "host"
-  }
-  ```
-
-  `memory` and `balloon` stay as they were. The three values are moved together because mixing
-  top-level CPU arguments with the block is not meant to work.
-- Result: `tofu validate` 0 errors, **0 warnings** (it had 2 deprecation warnings, and a plan used
-  to print 42).
-
-What the plan showed: 10 VMs updated in place and nothing else. Per VM the same values moved from
-the top level into the block (`- cores = 2 -> null` / `+ cores = 2`, `sockets = 1`, `type = "host"`),
-plus the provider's "unset" defaults in the block (`limit = 0`, `units = 0`, `vcores = 0`,
-`numa = false`), and `- onboot` / `+ start_at_node_boot`. Since CPU is hardware and
-`automatic_reboot` is `true`, it was not assumed harmless: it was applied to one VM first
-(sahaquiel) and then to the others, least critical first and lilith last, with a guard that
-aborts unless the plan is that pure move (same numbers, no other resource) and then compares:
-
-| Check after each apply | Result on all 10 VMs |
-|------------------------|----------------------|
-| QEMU process id (`qm status --verbose`) | same pid, no restart |
-| `qm config <id>` in Proxmox | identical |
-| Container start times | identical |
-| Next targeted plan | `No changes` |
-
-The full plan is now `No changes. Your infrastructure matches the configuration.`
-
-**`shutdown_timeout` for the database VMs: not needed (corrects the earlier plan).** The idea was
-to give ireul and tabris a longer Proxmox shutdown timeout so Postgres and MariaDB stop cleanly.
-Proxmox already waits up to 180 s for a guest, so that is not the limit; the real limit is Docker
-stopping each container after its `stop_grace_period` (10 s by default, none of the compose files
-sets one). The reboot of today shows it was enough: Immich's Postgres logged
-`database system was shut down at 2026-10-24 18:15:53 UTC` (clean, no recovery), pgvector started
-without crash recovery, and MariaDB logged `Shutdown complete` at 18:15:52. If a database ever
-starts with "automatic recovery", set `stop_grace_period: 60s` on that service in its
-`docker-compose.yaml` instead (it recreates the container once).
-
-## Suggested order
-
-1. ~~Install OpenTofu on the workstation~~ Done 2026-10-24 (`~/.local/bin/tofu`, 1.13.2).
-2. ~~Back up the state~~ Done (private folder, see above). Commit the code and the new lock.
-3. ~~Bump the provider in both `versions.tf` files, `desc` → `description` in `vm/main.tf`.~~ Done 2026-10-24.
-4. ~~Correct the three `memory` values in `terraform.tfvars`~~ (done) and decide about lilith.
-5. ~~`tofu init -upgrade`, then `tofu plan`~~ Done. The 10 `null_resource` replacements and harmless in-place VM updates remain.
-6. Only then `tofu apply`, and check `qm list` and the containers afterwards.
+| Symptom | Cause and fix |
+|---------|---------------|
+| Plan shows memory changes | `terraform.tfvars` differs from Proxmox. Align the file (see "Resizing a VM"). |
+| Plan shows `description` overwritten | The module must set `description`, not `desc`. |
+| Plan keeps removing a `startup_shutdown` block | Declare the block with the `-1` values. |
+| Helper plan matches nothing and the guard aborts | Pass the VM name, not its id, in `-target`. |
+| Database starts with "automatic recovery" after a reboot | Set `stop_grace_period: 60s` on that service in its `docker-compose.yaml`. Docker stops each container after `stop_grace_period` (10 s by default); Proxmox already waits up to 180 s for a guest. |

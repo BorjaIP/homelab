@@ -1,6 +1,6 @@
 # Jellyfin
 
-Media server for movies and series. Checked against the running server on 2026-10-25.
+Media server for movies and series.
 
 ## Where it runs
 
@@ -10,7 +10,7 @@ Media server for movies and series. Checked against the running server on 2026-1
 | Container | `lscr.io/linuxserver/jellyfin:12.2ubu2604-ls54` (Jellyfin 12.2.0) |
 | Defined in | [`terraform/docker/sachiel/docker-compose.yaml`](../terraform/docker/sachiel/docker-compose.yaml) |
 | Web UI | <http://192.168.1.203:8096> (the container uses `network_mode: host`, so `docker ps` shows no ports) |
-| Hostname via Traefik | none yet (`plex.home` exists, `jellyfin.home` does not) |
+| Hostname via Traefik | `jellyfin.home` (router in [`gaghiel/routers/sachiel.yaml`](../terraform/docker/gaghiel/routers/sachiel.yaml)) |
 | Libraries inside the container | `/data/movies` = `${STORAGE}/Media/Movies`, `/data/tvshows` = `${STORAGE}/Media/Series` (NFS) |
 | Config | `~/config/jellyfin` on the VM (`/config` in the container) |
 
@@ -49,8 +49,6 @@ Installed from the Jellyfin plugin catalog, all **Active**:
   Their settings: `~/config/jellyfin/data/plugins/configurations/`.
 - The same `configurations/` folder also holds the files of the built-in TMDb, OMDb, MusicBrainz
   and Studio Images metadata providers.
-- Trakt replaces what `plextraktsync` did for Plex. Plex and `plextraktsync` are commented out in
-  the compose file but their containers still run on sachiel as orphans.
 
 ### Credentials stored in the config folder
 

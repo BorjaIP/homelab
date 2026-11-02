@@ -16,7 +16,10 @@
 - [⚙️ Configuration](#️-configuration)
   - [Transmission and OpenVPN](#transmission-and-openvpn)
   - [Home Assistant](#home-assistant)
-  - [Windows Share with Rclone](#windows-share-with-rclone)
+  - [Jellyfin](#jellyfin)
+  - [Seerr](#seerr)
+  - [Windows Share (Samba)](#windows-share-samba)
+- [📚 Documentation](#-documentation)
 - [🔗 References](#-references)
 
 This homelab infrastructure is centered on **Proxmox VE** using **Terraform** and **Docker** to provision VMs and Dockers (*names based in the Angels from Neon Genesis Evangelion*). Each VM serves a specific purpose like media, storage, or network automation.
@@ -185,22 +188,22 @@ terraform destroy -target='module.vms["ramiel"]'
         <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/lilith.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Lilith</td>
         <th style="padding: 8px; border: 1px solid #ccc;">202</th>
-        <td style="padding: 8px; border: 1px solid #ccc;">Storage</td>
-        <td style="padding: 8px; border: 1px solid #ccc;">TrueNAS*</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Assistant</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Hermes Agent</td>
       </tr>
       <tr>
         <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/sachiel.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Sachiel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">203</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Media Server</td>
-        <td style="padding: 8px; border: 1px solid #ccc;">Plex / Jellyfin / Plextraktsync / Navidrome</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Jellyfin / Calibre-Web</td>
       </tr>
       <tr>
         <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/shamshel.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Shamshel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">204</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Arr Stack</td>
-        <td style="padding: 8px; border: 1px solid #ccc;">Sonarr / Radarr / Lidarr / Prowlarr / Overseerr</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Sonarr / Radarr / Lidarr / Prowlarr / Seerr</td>
       </tr>
       <tr>
         <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/ramiel.jpg" width="64" /></td>
@@ -214,7 +217,7 @@ terraform destroy -target='module.vms["ramiel"]'
         <td style="padding: 8px; border: 1px solid #ccc;">Gaghiel</td>
         <th style="padding: 8px; border: 1px solid #ccc;">206</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Reverse Proxy and Tunnels</td>
-        <td style="padding: 8px; border: 1px solid #ccc;">Traefik / CloudflareTunnels</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Traefik</td>
       </tr>
       <tr>
         <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/israfel.jpg" width="64" /></td>
@@ -228,14 +231,14 @@ terraform destroy -target='module.vms["ramiel"]'
         <td style="padding: 8px; border: 1px solid #ccc;">Sandalphon</td>
         <th style="padding: 8px; border: 1px solid #ccc;">208</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Network tools</td>
-        <td style="padding: 8px; border: 1px solid #ccc;">Gluetun / Flaresolverr</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Gluetun / Flaresolverr / Tailscale</td>
       </tr>
       <tr>
         <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/matarael.jpg" width="64" /></td>
         <td style="padding: 8px; border: 1px solid #ccc;">Matarael</td>
         <th style="padding: 8px; border: 1px solid #ccc;">209</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Dashboards</td>
-        <td style="padding: 8px; border: 1px solid #ccc;">Homepage / Homarr / Homer</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Homepage</td>
       </tr>
       <tr>
         <td style="padding: 8px; border: 1px solid #ccc;"><img src="images/sahaquiel.jpg" width="64" /></td>
@@ -249,7 +252,21 @@ terraform destroy -target='module.vms["ramiel"]'
         <td style="padding: 8px; border: 1px solid #ccc;">Ireul</td>
         <th style="padding: 8px; border: 1px solid #ccc;">211</th>
         <td style="padding: 8px; border: 1px solid #ccc;">Utilities</td>
-        <td style="padding: 8px; border: 1px solid #ccc;">Home Assistant / Immich / Paperless</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Immich / Open WebUI</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ccc;"></td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Leliel</td>
+        <th style="padding: 8px; border: 1px solid #ccc;">212</th>
+        <td style="padding: 8px; border: 1px solid #ccc;">Home Automation</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Home Assistant OS</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ccc;"></td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Tabris</td>
+        <th style="padding: 8px; border: 1px solid #ccc;">217</th>
+        <td style="padding: 8px; border: 1px solid #ccc;">Storage tools</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Samba / Nextcloud</td>
       </tr>
     </tbody>
   </table>
@@ -276,29 +293,36 @@ terraform destroy -target='module.vms["ramiel"]'
 
 ### Seerr
 
-- Requests manager connected to Jellyfin, Radarr and Sonarr (it replaced Overseerr, which was tied to Plex)
-- Switch from Plex, reset procedure and pending items: [docs/seerr.md](docs/seerr.md)
+- Requests manager connected to Jellyfin, Radarr and Sonarr
+- Setup, reset procedure and pending items: [docs/seerr.md](docs/seerr.md)
 
-### Windows Share with Rclone
+### Windows Share (Samba)
 
-- Install [Rclone](https://rclone.org/install/)
+- Windows reaches the NAS disk through the `samba` container on tabris (`\\192.168.1.217\Storage`).
+- Map it once as `Z:` with a stored credential (run in a normal PowerShell or CMD).
+- Container configuration, verification and troubleshooting: [docs/samba.md](docs/samba.md)
 
-```bash
-# Installing
-winget install --id=Rclone.Rclone -e
-# Setup new SFTP connection
-rclone config
-# Show all volumes
-rclone listremotes
-# Mount
-rclone mount nas:/mnt/storage X: --vfs-cache-mode full --vfs-cache-max-size 2G --vfs-read-chunk-size 64M --vfs-read-chunk-size-limit 512M --buffer-size 32M --attr-timeout 1s --no-modtime --network-mode --dir-cache-time 5m --poll-interval 10s --log-level INFO
-```
+## 📚 Documentation
 
-- Copy files
-
-```bash
-rclone copy "F:/" nas:"/mnt/storage/backup/" --progress
-```
+| Doc | Use it for |
+|-----|------------|
+| [backup-3-2-1.md](docs/backup-3-2-1.md) | 3-2-1 backup scheme for the NAS folders that matter |
+| [glances-host.md](docs/glances-host.md) | Glances web server on the Proxmox host, read by the dashboard |
+| [home-assistant.md](docs/home-assistant.md) | Home Assistant OS VM (`leliel`): update, rollback, MCP, troubleshooting |
+| [israfel-nfs.md](docs/israfel-nfs.md) | NFS server and USB disk passthrough on `israfel` |
+| [jellyfin.md](docs/jellyfin.md) | Jellyfin media server setup |
+| [lilith.md](docs/lilith.md) | Lilith, the Hermes assistant VM |
+| [mcps.md](docs/mcps.md) | MCP servers Claude Code uses to operate the homelab |
+| [oci-vs-docker-vms.md](docs/oci-vs-docker-vms.md) | Proxmox native OCI containers compared with Docker inside VMs |
+| [pkm-unification.md](docs/pkm-unification.md) | PKM shared by Obsidian, Hermes and iOS |
+| [proxmox-backups.md](docs/proxmox-backups.md) | Backups of hand-made VMs and the Proxmox host |
+| [proxmox-ssh-access.md](docs/proxmox-ssh-access.md) | Dedicated SSH key for Proxmox automation |
+| [proxmox-upgrade.md](docs/proxmox-upgrade.md) | Proxmox VE 8.4 to 9 upgrade |
+| [samba.md](docs/samba.md) | Windows access to the NAS |
+| [seerr.md](docs/seerr.md) | Seerr media request manager |
+| [syncthing-israfel.md](docs/syncthing-israfel.md) | Syncthing hub on `israfel` |
+| [terraform-to-opentofu.md](docs/terraform-to-opentofu.md) | Terraform to OpenTofu and the Proxmox 9 provider |
+| [vm-config-backups.md](docs/vm-config-backups.md) | Backup and automatic restore of each VM's `~/config/` |
 
 ## 🔗 References
 

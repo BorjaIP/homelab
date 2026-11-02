@@ -1,28 +1,30 @@
 # 3-2-1 Backup
 
-Backup scheme for the NAS folders that matter (currently the photo library and the Nextcloud
-documents), following the **3-2-1 rule**: 3 copies, on 2 different media types, with 1 copy
-offsite. One script (`sync-backup.ps1`) handles every source — it asks which one to back up on
-each run (see "Select what to back up" below).
+Backup of the NAS folders that matter (the photo library and the Nextcloud documents), following
+the **3-2-1 rule**: 3 copies, on 2 different media types, with 1 copy offsite. One script,
+`scripts/sync-backup.ps1`, handles every source and asks which one to back up on each run.
 
-> **Status: cloud leg paused.** The cloud provider is being reconsidered (moving away from Box),
-> so cloud upload is currently switched off in the script (`$SyncToBox = $false`). Only copy 1
-> (NFS) and copy 2 (local disk) are active right now. See "Pausing/resuming the cloud copy" below.
+The script always copies to a local disk. The offsite cloud copy (Box, through rclone) runs only
+when `$SyncToBox = $true` in the script; its default is `$false`.
 
 ## Sources
 
-| Name | NFS path (`Z:\...` on Windows via SMB) | Local disk copy | Box copy |
+| Name | NFS path (`Z:\...` on Windows via SMB) | Local disk copy | Box copy (when `$SyncToBox` is `$true`) |
 |------|------------------------------------------|------------------|----------|
-| Photos | `/mnt/storage/Photos/library/admin/` | `D:\Photos\` | `box:Photos` |
-| Documents | `/mnt/storage/Documents/borja/files/` | `D:\Documents\` | `box:Documents` |
+| Photos | `/mnt/storage/Photos/library/admin/` (`Z:\Photos\library\admin`) | `D:\Photos` | `box:Photos` |
+| Documents | `/mnt/storage/Documents/borja/files/` (`Z:\Documents\borja\files`) | `D:\Documents` | `box:Documents` |
+
+The destinations end up **without** the intermediate `admin/` / `borja/files/` folder: the script
+copies the *contents* of that folder, so year folders sit at the root (`Photos/2015/...`, not
+`Photos/admin/2015/...`).
 
 ## Scheme
 
 | # | Copy | Medium | Location | Role |
 |---|------|--------|----------|------|
 | 1 | Primary | NFS (external hard drive) | `/mnt/storage/<Photos\|Documents>/...` (mounted as `Z:\...` on Windows via SMB) | Source of truth. Read directly by Immich / Nextcloud. |
-| 2 | Local | Local disk on the Windows machine | `D:\Photos\` / `D:\Documents\` | Fast local backup, independent of network/third parties. |
-| 3 | Offsite (**paused**) | Cloud (Box, being reconsidered) | `box:Photos` / `box:Documents` | Off-site backup, protects against local hardware failure/theft/fire. Not currently running. |
+| 2 | Local | Local disk on the Windows machine | `D:\Photos\` / `D:\Documents\` | Fast local backup, independent of network and third parties. Always runs. |
+| 3 | Offsite | Cloud (Box) | `box:Photos` / `box:Documents` | Protects against local hardware failure, theft or fire. Runs only when `$SyncToBox = $true`. |
 
 ```
               ┌─────────────────────────────┐        ┌─────────────────────────────┐
@@ -32,68 +34,20 @@ each run (see "Select what to back up" below).
               └───────────────┬─────────────┘        └───────────────┬─────────────┘
                               │                                      │
                 Immich reads  │  rclone (sync-backup.ps1)   Nextcloud│  reads
-                directly      │  - pick source in the menu  directly│
+                directly      │  - pick mode and source     directly │
                               ▼                                      ▼
                     ┌─────────┴─────────┐                  ┌─────────┴─────────┐
                     ▼                   ▼                  ▼                   ▼
               D:\Photos\...      box:Photos\...      D:\Documents\...   box:Documents\...
-              (copy 2)           (copy 3, paused)     (copy 2)           (copy 3, paused)
+              (copy 2)           (copy 3, optional)   (copy 2)           (copy 3, optional)
 ```
 
-Note: the destinations (Box and local disk) end up **without** the intermediate `admin/` /
-`borja/files/` folder — the script copies the *contents* of that folder, so e.g. year folders for
-Photos sit directly at the root on both destinations (`Photos/2015/...`, not
-`Photos/admin/2015/...`).
+## Prerequisites
 
-## Select what to back up (menu on every run)
-
-After picking Copy or Sync, the script shows a second menu to pick the source:
-
-```
-=== Select what to back up ===
-  1) Photos     (Z:\Photos\library\admin)
-  2) Documents  (Z:\Documents\borja\files)
-
-Enter a number
-```
-
-Adding a new source later (e.g. a third NAS folder) just means adding one entry to the
-`$Sources` table at the top of the script — no other logic changes.
-
-## Sync mode: Copy vs Sync (menu on every run)
-
-Every time the script runs, it shows a menu:
-
-```
-=== Select sync mode ===
-  1) Copy  - safe, never deletes anything at the destination (default for regular runs)
-  2) Sync  - mirrors the source exactly, DELETES destination files/folders
-             that no longer exist at the source (use after renaming/merging albums)
-
-Enter 1 or 2
-```
-
-**Copy (option 1)** — the safe default for regular runs (new photos added, nothing reorganized):
-- If a file is deleted or renamed at the source (NFS), it is **not** deleted from Box or the
-  local disk — it stays there as a backup.
-- If albums get reorganized on the NFS without using Sync afterwards, the destinations
-  accumulate copies instead of mirroring the exact state of the source.
-
-**Sync (option 2)** — needed after reorganizing albums in Immich (renaming to drop the year,
-merging duplicate-artist albums, etc.), since that changes the physical folder names on the NFS
-source (via the Storage Template) and a plain Copy would leave the old folder names behind as
-orphaned duplicates at the destinations:
-- Makes the destination match the source exactly, **including deleting** anything at the
-  destination that no longer exists at the source.
-- Always previewed first with `--dry-run` automatically — the script prints what would be
-  deleted/copied, then asks for an explicit `YES` before doing anything for real. Any other input
-  aborts with no changes made.
-- Review the `Deleted` lines in the preview carefully before typing `YES` — that's exactly what
-  will be removed from Box and/or `D:\Photos`.
-
-Rule of thumb: use **Copy** for routine "I added some photos" runs, and **Sync** right after a
-reorganization in Immich (renaming/merging albums), then go back to Copy for the next routine
-run.
+- The `Z:\` drive (SMB mount of the NAS, backing `/mnt/storage`) is connected. If it is not, the
+  script stops with an explicit error before copying anything.
+- rclone is installed on the Windows machine (step 1).
+- For the Box copy only: a `box` rclone remote (step 2).
 
 ## Setup
 
@@ -103,14 +57,13 @@ run.
 winget install Rclone.Rclone
 ```
 
-Close and reopen a new PowerShell window after installing (so the `PATH` reloads). Verify with:
+Close and reopen PowerShell so the `PATH` reloads, then verify:
 
 ```powershell
 rclone version
 ```
 
-If `rclone` is still not recognized after reopening the terminal, winget may not have registered
-the install location in the `PATH`. Find it and add it manually:
+If `rclone` is not recognized, find it and add it to the user `PATH`:
 
 ```powershell
 Get-ChildItem -Path "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Filter "rclone.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
@@ -121,192 +74,197 @@ $rclonePath = (Get-ChildItem -Path "$env:LOCALAPPDATA\Microsoft\WinGet\Packages"
 [Environment]::SetEnvironmentVariable("Path", "$([Environment]::GetEnvironmentVariable('Path','User'));$rclonePath", "User")
 ```
 
-Close and reopen the terminal again, then retry `rclone version`.
+Close and reopen the terminal, then retry `rclone version`.
 
-### 2. Why the source is `Z:\`, not an rclone remote
+### 2. Configure the Box remote (only for the Box copy)
 
-An existing rclone remote called `nas` (SFTP, `192.168.1.217`) was already configured on this
-machine from an earlier setup. It was considered as the source instead of the mapped `Z:\`
-drive, but ruled out for two reasons:
+rclone talks to the Box API directly and ships with its own OAuth credentials, so no custom Box app
+or key is needed. Run this on the Windows machine itself, in a local PowerShell window: the
+browser login only works where a browser is available.
 
-- **Performance**: in a LAN, SMB (what backs the `Z:\` mapped drive) is generally faster than
-  SFTP for bulk transfers — SMB3 supports multichannel and larger buffers, while SFTP has
-  per-packet encryption overhead and is designed for secure remote access, not for raw LAN
-  throughput.
-- **Access**: `rclone lsd nas:` only showed the SFTP user's home directory (`.cache`, `.config`,
-  `.ssh`), not the actual storage path — SFTP chroots the user to their home by default, so this
-  remote can't currently see `Photos/library/admin` at all without reconfiguring the SFTP server.
+The interactive `rclone config` wizard can auto-fill the blank `access_token` prompt and skip the
+browser step. Create the remote in two explicit steps instead.
 
-Conclusion: keep using `Z:\Photos\library\admin` (the SMB-mapped drive) as the source for the
-script. The `nas` remote is left untouched, unused for this purpose.
+1. Run the OAuth authorization:
 
-### 3. Configure the Box remote
+   ```powershell
+   rclone authorize "box"
+   ```
 
-Box Sync (the old desktop client) is deprecated — rclone talks to the Box API directly instead,
-with no need to create a custom Box app or generate any key manually. rclone ships with its own
-OAuth credentials for Box.
+   The browser opens for the Box login. When done, rclone prints a JSON block:
 
-**Important**: do this on the Windows machine itself, in a local PowerShell window (not over an
-SSH session into a headless Linux VM) — the browser-based Box login below only works where a
-browser is actually available.
+   ```
+   Paste the following into your remote machine --->
+   {"access_token":"...","token_type":"bearer","refresh_token":"...","expiry":"..."}
+   <---End paste
+   ```
 
-The interactive `rclone config` wizard was tried first, but hit a terminal/readline glitch: the
-`access_token` prompt (which must be left blank) kept getting auto-filled with `1` from an
-earlier answer in the same wizard, which made rclone skip the "Use auto config" step entirely (it
-thought it already had a token) — so the browser never opened. The fix is to skip the wizard and
-create the remote in two explicit steps instead:
+2. Create the remote with that token:
 
-**Step 1 — run the OAuth authorization on its own:**
+   ```powershell
+   rclone config create box box box_sub_type=1 token='PASTE_THE_FULL_JSON_HERE'
+   ```
 
-```powershell
-rclone authorize "box"
-```
+3. Verify:
 
-This opens the browser for the Box login/authorization. Once done, it prints a JSON block in the
-terminal:
+   ```powershell
+   rclone lsd box:
+   ```
 
-```
-Paste the following into your remote machine --->
-{"access_token":"...","token_type":"bearer","refresh_token":"...","expiry":"..."}
-<---End paste
-```
+   It lists the root folders of the Box account.
 
-**Step 2 — create the remote directly with that token, bypassing the wizard:**
+### 3. Install the script
 
-Copy the full JSON (the `{...}` part) and run:
+Location: `D:\Scripts\sync-backup.ps1` (the repo copy is `scripts/sync-backup.ps1`). Logs go to
+`D:\Scripts\logs\`, created on the first run.
+
+## Run
 
 ```powershell
-rclone config create box box box_sub_type=1 token='PASTE_THE_FULL_JSON_HERE'
+D:\Scripts\sync-backup.ps1
 ```
 
-Verify:
+The script runs on demand; no scheduled task is set up.
 
-```powershell
-rclone lsd box:
+On each run it asks two things, in this order.
+
+**1. Mode:**
+
+```
+=== Select sync mode ===
+  1) Copy  - safe, never deletes anything at the destination (default for regular runs)
+  2) Sync  - mirrors the source exactly, DELETES destination files/folders
+             that no longer exist at the source (use after reorganizing files)
+
+Enter 1 or 2
 ```
 
-Should list the root folders of your Box account.
+**2. Source:**
 
-## The script
+```
+=== Select what to back up ===
+  1) Photos     (Z:\Photos\library\admin)
+  2) Documents  (Z:\Documents\borja\files)
 
-Location: `D:\Scripts\sync-backup.ps1` (copy kept in the repo as `scripts/sync-backup.ps1`)
-
-What it does:
-1. Checks that the source (`Z:\Photos\library\admin`) is reachable (i.e. the SMB drive is
-   mounted).
-2. Asks which mode to use for this run: Copy or Sync (see "Sync mode: Copy vs Sync" above). If
-   Sync is chosen, previews with `--dry-run` and requires typing `YES` to proceed.
-3. If `$SyncToBox` is `$true`: runs the chosen mode from the source to `box:Photos`. In Copy
-   mode, capped at `$BoxMaxTransfer` per run (see "Limited Box space" below), plus the
-   `not-in-box.txt` tracking file. If `$SyncToBox` is `$false`, this whole step is skipped.
-4. Runs the chosen mode from the source to `D:\Photos` — always runs, regardless of `$SyncToBox`.
-5. Writes one log per leg to `D:\Scripts\logs\`, timestamped.
-
-### Pausing/resuming the cloud copy
-
-The cloud leg (currently Box) can be switched off entirely without touching the rest of the
-script — useful while switching providers, without losing the local backup in the meantime.
-
-```powershell
-$SyncToBox = $false   # cloud upload skipped, only D:\Photos runs
-$SyncToBox = $true     # cloud upload active
+Enter a number
 ```
 
-While `$false`: no connection to Box is made, no `box:` remote is required to be valid, and
-`not-in-box.txt` isn't regenerated (it's only relevant while actually uploading to Box). The
-local disk sync to `D:\Photos` keeps running either way, so that backup stays current regardless
-of what's happening with the cloud provider.
+Any other input aborts with `Invalid option. Aborting.`
 
-Once a new provider is chosen, update `$BoxDest` (currently `box:Photos`) to point at the new
-remote — configure it in rclone first (`rclone config`, following the same idea as the Box setup
-above, adapted to whatever the new provider's rclone backend needs), then flip `$SyncToBox` back
-to `$true`.
+### Copy vs Sync
 
-### Limited Box space
+| Mode | Behaviour | Use it when |
+|------|-----------|-------------|
+| Copy (`rclone copy`) | Never deletes at the destination. A file deleted or renamed at the source stays at the destination. | Routine runs (new files added, nothing reorganized). |
+| Sync (`rclone sync`) | Makes the destination match the source exactly, **including deleting** what no longer exists at the source. | Right after reorganizing the source, for example renaming or merging albums in Immich. The Storage Template renames the physical folders on the NFS, and a plain Copy would leave the old folders as orphaned duplicates. |
 
-The Box account is mid-reorganization and only has a small amount of free space (checked with
-`rclone about box:`: 50 GiB total, ~22 GiB used, ~27.8 GiB free at the time of writing) — nowhere
-near enough to fit the whole library in one run. To handle this without the transfer failing
-outright with a "not enough space" error, the script caps the Box upload with
-`--max-transfer $BoxMaxTransfer` (defaults to `25G`, leaving a few GB of safety margin below the
-actual free space).
+Use Copy for the next routine run after a Sync.
 
-How this plays out:
+Sync is previewed first:
 
-- Files are copied in alphabetical order (`--order-by name`), so the oldest years upload first
-  (`2008`, `2009`, `2010`, ...).
-- When the cap is hit, rclone stops cleanly with exit code `7` — the script recognizes this and
-  prints a message that this is expected, not a failure.
-- The local disk (`D:\Photos`) sync is not capped — it always runs in full.
+1. The script runs `rclone sync ... --dry-run -v` for the local disk (and for Box when
+   `$SyncToBox` is `$true`).
+2. It prints `Review the 'Deleted' lines above carefully. Type YES to proceed, anything else
+   aborts`.
+3. Review the `Deleted` lines: that is exactly what is removed from the destinations.
+4. Type `YES` to proceed. Any other input prints `Aborted. No changes made.`
 
-**Workflow while Box space is tight:**
-1. Check current free space: `rclone about box:`
-2. Adjust `$BoxMaxTransfer` in the script if the free space differs a lot from the current
-   ~27.8 GiB (keep a couple of GB of margin below the real free space).
+### What the script does
+
+1. Shows the mode menu, then the source menu.
+2. Checks that the source path is reachable. If not, it prints an error asking whether `Z:\` is
+   mounted and exits.
+3. In Sync mode, runs the preview and asks for `YES`.
+4. If `$SyncToBox` is `$true`, runs the chosen mode from the source to the Box destination (see
+   "Box copy").
+5. Always runs the chosen mode from the source to the local destination (`D:\Photos` or
+   `D:\Documents`), creating the folder if needed. A non-zero rclone exit code is reported with the
+   log path, and the script exits with that code.
+6. Writes one timestamped log per leg.
+
+### Logs
+
+Each run writes to `D:\Scripts\logs\`:
+
+- `sync-local-<Name>_<timestamp>.log`
+- `sync-box-<Name>_<timestamp>.log` (only when `$SyncToBox` is `$true`)
+
+Check them when the script reports a non-zero exit code.
+
+## Box copy
+
+Settings at the top of the script:
+
+| Variable | Value | Meaning |
+|----------|-------|---------|
+| `$SyncToBox` | `$false` | `$true` enables the Box leg. When `$false`, no connection to Box is made, no `box:` remote is required, and `not-in-box-<Name>.txt` is not regenerated. The local leg runs either way. |
+| `$BoxMaxTransfer` | `25G` | Cap per run. |
+| `$BoxMaxFileSize` | `250M` | Box Personal/Free plan per-file limit. |
+
+To enable the Box copy, complete step 2 of Setup and set `$SyncToBox = $true`. To point the cloud
+leg at another rclone remote, change the `BoxDest` entries in `$Sources`.
+
+### Transfer cap
+
+The Box upload runs with `--max-transfer $BoxMaxTransfer` so it stops cleanly instead of failing
+with a "not enough space" error when the account has little free space.
+
+- Files are copied in alphabetical order (`--order-by name`), so the oldest years upload first.
+- When the cap is reached, rclone exits with code `7`. The script prints that this is expected, not
+  a failure.
+- The local leg is not capped.
+
+Workflow when Box space is limited:
+
+1. Check free space: `rclone about box:`
+2. Set `$BoxMaxTransfer` below the free space, with a couple of GB of margin.
 3. Run the script. It uploads as much as fits, then stops.
-4. Free up more space in Box (continue the reorganization/cleanup).
-5. Re-run the script. Since it uses `copy`, already-uploaded files are skipped — it resumes with
-   the next year/album that didn't fit last time.
-6. Repeat steps 3-5 until everything's uploaded, then increase `$BoxMaxTransfer` to a generous
-   value (or remove the flag) since it won't matter anymore once there's enough headroom.
+4. Free space in Box.
+5. Re-run. Already uploaded files are skipped, so it resumes where it stopped.
+6. Repeat until everything is uploaded, then raise `$BoxMaxTransfer`.
 
-### Box's 250MB per-file limit (Personal/Free plan)
+### Per-file limit
 
-Box's Personal/Free plan rejects any single file larger than 250MB outright, with:
+The Box Personal/Free plan rejects any file larger than 250 MB with:
 
 ```
 Failed to copy: pre-upload check: Error "file_size_limit_exceeded" (403):
 File size exceeds the folder owner's file size limit
 ```
 
-This is unrelated to the account's free space or to API rate limits — it's a hard per-file cap
-tied to the plan. Checked against the full library (`find ... -size +250M`), only 2 files hit
-this today:
+The script passes `--max-size $BoxMaxFileSize` so rclone skips those files and logs them. They stay
+on the NFS and are copied to the local disk. A plan with a higher per-file limit (Box Business)
+removes the restriction.
 
-- `2016/2016 - Pueblo/Toro de fuego.mov` (618MB)
-- `2025/2025 - Concierto - Baby Metal/IMG_4688.mov` (268MB)
+### Files not on Box
 
-The script sets `--max-size $BoxMaxFileSize` (`250M`) on the Box upload so rclone skips these
-files cleanly and logs them, instead of wasting time retrying an upload that will never succeed.
-They still exist safely on the NFS source and get copied to the local `D:\Photos` backup — they
-just won't be present on Box unless the account is upgraded to a plan with a higher per-file
-limit (Box Business plans allow much larger files).
-
-### Tracking which files are not on Box
-
-After every run, the script scans the source (`Z:\Photos\library\admin`) for files over 250MB
-and writes their folder + filename (nothing else) to:
+When the Box leg runs for a source with `TrackBoxLimits = $true` (Photos), the script scans the
+source for files over 250 MB and writes their full paths to:
 
 ```
-D:\Scripts\logs\not-in-box.txt
+D:\Scripts\logs\not-in-box-Photos.txt
 ```
 
-This file is recalculated from scratch each run (not appended to), so it always reflects the
-current state of the source rather than accumulating stale entries. It only lists files that
-will *never* make it to Box under the current plan — it does not include files that simply
-haven't been uploaded yet because a previous run stopped at the `$BoxMaxTransfer` cap (those get
-picked up automatically on the next run).
+The file is rewritten on every run. It lists only files that never fit the plan limit, not files
+pending because of the transfer cap.
 
-### Manual run
+## Add a source
 
-```powershell
-D:\Scripts\sync-backup.ps1
-```
+Add one entry to the `$Sources` table at the top of the script. The menu is built from the table.
 
-(No scheduled task is set up yet — it runs on demand. Automating it with Windows Task Scheduler
-is a separate, deliberately-not-done-yet step.)
+| Field | Meaning |
+|-------|---------|
+| `Name` | Label shown in the menu, used in log names. |
+| `Source` | Path on the `Z:\` mount (read-only for the script). |
+| `LocalDest` | Local disk destination (always synced). |
+| `BoxDest` | Box destination (synced only when `$SyncToBox` is `$true`). |
+| `TrackBoxLimits` | Whether to refresh `not-in-box-<Name>.txt` (files over 250 MB). |
 
-### Logs
+## Why the source is `Z:\`
 
-Each run produces two files in `D:\Scripts\logs\`:
+The source is the SMB-mapped `Z:\` drive, not an rclone SFTP remote:
 
-- `sync-box_<timestamp>.log`
-- `sync-local_<timestamp>.log`
-
-Check these if the script reports a non-zero exit code.
-
-## Requirement for the script to work
-
-The `Z:\` drive (SMB mount of the NAS, backing `/mnt/storage/Photos`) must be connected before
-running the script. If it isn't, the script stops with an explicit error instead of failing
-halfway through.
+- **Performance**: on a LAN, SMB is generally faster than SFTP for bulk transfers (SMB3 supports
+  multichannel and larger buffers; SFTP adds per-packet encryption overhead).
+- **Access**: an SFTP remote to `192.168.1.217` chroots the user to its home directory, so it cannot
+  see `Photos/library/admin` without reconfiguring the SFTP server.

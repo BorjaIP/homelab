@@ -91,8 +91,7 @@ find "${MOUNT_POINT}/Backups/$(hostname)" -maxdepth 1 -name "config_*.zip" -mtim
 
 Each run: rotates the previous backup into a timestamped `.zip` (so you keep point-in-time
 snapshots, not just the latest state), pushes the current `~/config/` to NFS folder-by-folder
-(printing just the folder name — the old `--info=progress2` dumped a flood of per-file progress
-lines when run non-interactively over SSH), then prunes zips older than 28 days. The `sudo` on
+(printing just the folder name, so non-interactive runs over SSH do not flood the output), then prunes zips older than 28 days. The `sudo` on
 the `rsync` matters: some services (Postgres, pgvector) run as their own internal container UID
 with `700`-permission data directories that the plain `bis` user can't read into.
 
@@ -111,20 +110,17 @@ step) to execute on **every single `terraform apply`** — not just the first ti
 created. Without a guard, every `apply` would blindly `rsync` the NFS backup on top of
 `~/config/`, silently overwriting whatever is currently running.
 
-An earlier version of this script used a one-time `.rsync_done` marker file instead of checking
-whether `config/` was empty. That broke in practice: `ireul` had been live for months with real
-data, but never had a backup on NFS until one was taken by hand recently. The very next
-`terraform apply` saw "a backup now exists" + "no `.rsync_done` marker" and tried to restore onto
-the already-running VM — `rsync` failed trying to `chmod` files inside `immich-cache/` that were
-owned by a different UID (root, written by the ML container), aborting `setup.sh` under `set -e`
-partway through Step 4.
+The restore therefore checks `[ -z "$(ls -A "${CONFIG_PATH}")" ]` instead of a marker file such
+as `.rsync_done`: it only restores when `~/config/` is **actually empty**. A marker would break for
+a VM that has been live for a long time with real data and gets its first backup on NFS later: the
+next `terraform apply` would see "a backup exists" + "no marker" and try to restore onto the running
+VM, and `rsync` would fail on files owned by another UID (for example `immich-cache/`, written by
+the ML container as root), aborting `setup.sh` under `set -e`.
 
-The fix: drop the marker file entirely and check `[ -z "$(ls -A "${CONFIG_PATH}")" ]` instead —
-i.e. only restore when `~/config/` is **actually empty**. That's a true "is this a fresh VM"
-check, immune to the timing issue above, and it's what makes `terraform apply` idempotent with
-respect to config: it can re-run `setup.sh` freely (redeploy `docker-compose.yaml`, re-copy
-`.env`, `docker compose up -d` again) without ever touching `~/config/` on a VM that already has
-one.
+The empty-directory check is a true "is this a fresh VM" test. It makes `terraform apply`
+idempotent with respect to config: `setup.sh` can re-run freely (redeploy `docker-compose.yaml`,
+re-copy `.env`, `docker compose up -d` again) without ever touching `~/config/` on a VM that
+already has one.
 
 ## Manual restore
 
@@ -170,22 +166,21 @@ Runs every Sunday at 3am. Since it's installed by `setup.sh` itself, it gets (re
 every `terraform apply` too — idempotently (the `grep -v` strips any previous `backup.sh` line
 before re-adding it, so re-running `setup.sh` doesn't duplicate the cron entry).
 
-The `|| true` matters: without it, on a VM with **no pre-existing crontab**, `crontab -l` returns
-nothing and `grep -v` finds zero matching lines to keep, which makes `grep` exit `1`. Under
-`set -e`, inherited into the subshell, that aborted the subshell *before* it ever reached the
-`echo` of the new cron line — so `crontab -` received empty input and silently installed nothing,
-with no error anywhere. Hit this on both `gaghiel` and `ireul` (their first time ever getting a
-crontab); confirmed by reproducing it locally before fixing it. Currently installed and verified
-(`crontab -l`) on `ramiel`, `gaghiel` and `ireul`; the rest will pick it up on their next
-`terraform apply`.
+The `|| true` matters: on a VM with **no pre-existing crontab**, `crontab -l` returns nothing and
+`grep -v` finds zero lines to keep, so `grep` exits `1`. Under `set -e`, inherited into the
+subshell, that aborts the subshell *before* it reaches the `echo` of the new cron line, so
+`crontab -` receives empty input and silently installs nothing, with no error anywhere.
+
+Check on a VM with `crontab -l`. The entry is registered on the next `terraform apply` for any VM
+that does not have it yet.
 
 ## Docker waits for the NFS mount (stacks that use it)
 
-After a host reboot, Docker used to start containers about 17 s after boot without waiting for
-the NFS share, so a container with a bind mount under `/mnt/storage` could start against the
-empty local folder (empty libraries, uploads written to the VM disk). `setup.sh` now has a
-"Step 5.5" that detects whether the VM's `docker-compose.yaml` references `${STORAGE}` or
-`/mnt/storage` and, if so, installs a systemd drop-in:
+After a host reboot, Docker can start containers about 17 s after boot without waiting for the
+NFS share, so a container with a bind mount under `/mnt/storage` could start against the empty
+local folder (empty libraries, uploads written to the VM disk). `setup.sh` ("Step 5.5") detects
+whether the VM's `docker-compose.yaml` references `${STORAGE}` or `/mnt/storage` and, if so,
+installs a systemd drop-in:
 
 ```
 /etc/systemd/system/docker.service.d/10-nfs.conf
@@ -198,6 +193,6 @@ if the NFS is down, those stacks do not start rather than start on the wrong dis
 not use the NFS (gaghiel/Traefik, matarael/homepage, sahaquiel/Uptime Kuma, sandalphon/VPN) do not
 get it, so they keep running when israfel is down (Uptime Kuma must keep alerting).
 
-Applied by hand on 2026-10-24 to the running VMs that use it: sachiel, shamshel, ramiel, ireul and
-tabris (`daemon-reload` only; Docker and the containers were not restarted). Check with
+To apply it to a running VM by hand, create the drop-in and run `sudo systemctl daemon-reload`
+(Docker and the containers do not need a restart). Check with
 `systemctl show docker -p RequiresMountsFor`.

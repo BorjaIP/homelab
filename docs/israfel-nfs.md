@@ -37,7 +37,6 @@ this page and the `vzdump` backup are the only way to rebuild it.
 | Host controller | xHCI at PCI `0000:03:00.4` |
 | USB position | bus 5, port 2 (devpath `5-2`), directly on the controller's root hub, **not** through the VIA Labs hub on port 1 |
 | Speed | USB 3 (5000M) |
-| Physical port on the machine | _fill in: which socket on the case_ |
 | Stable device paths | by serial: `/dev/disk/by-id/usb-WD_Elements_25A3_575832324437304653364C39-0:0-part1` · by port: `/dev/disk/by-path/pci-0000:03:00.4-usb-0:2:1.0-scsi-0:0:0:0-part1` |
 
 The VM uses the **by-id** path, which follows the disk (serial number) to any USB port. The
@@ -63,14 +62,13 @@ cores 2, memory 4096, onboot 1, tags nfs
 
 ### The host must NOT mount the disk
 
-The disk is used by israfel only. The host used to have `UUID=58F08ACBF08AAF36 /mnt/storage
-ntfs-3g` in `/etc/fstab`, so two NTFS drivers worked on the same volume. It was unmounted and the
-line commented out on 2026-10-24 (copy of the old file: `/etc/fstab.bak-pre-upgrade`). If
-`findmnt /mnt/storage` prints anything on the host, that is a regression.
+The disk is used by israfel only. Two NTFS drivers on the same volume would corrupt it, so the
+host's `/etc/fstab` must have no `/mnt/storage` entry for `UUID=58F08ACBF08AAF36` (comment it out
+if present). If `findmnt /mnt/storage` prints anything on the host, unmount it and fix `fstab`.
 
 ## Inside israfel
 
-Read from the `vzdump` backup of 2026-10-24 (the VM has no guest agent and was not entered).
+Contents of the VM, as stored in its `vzdump` backup (the VM has no guest agent).
 
 | Item | Value |
 |------|-------|
@@ -103,7 +101,7 @@ Things worth knowing:
   That is why clients that the export squashes to `nobody` (and the Proxmox host) can still write.
   Permissions are not enforced on this share.
 - The export is open read-write to the whole `192.168.1.0/24`, with no authentication.
-- No Samba here: the Windows `Z:` drive comes from somewhere else.
+- No Samba here: the Windows `Z:` drive comes from the `samba` container on tabris, see [samba.md](samba.md).
 - No guest agent means Proxmox cannot freeze israfel's filesystem during `vzdump`; it skips the
   freeze and takes a crash-consistent snapshot (see [proxmox-backups.md](proxmox-backups.md)).
 
@@ -127,7 +125,7 @@ Things worth knowing:
 ## Boot order
 
 When the host reboots, israfel has to be up before the VMs mount `/mnt/storage` and before
-`nfs-storage` is usable. Set on 2026-10-24:
+`nfs-storage` is usable. Set the startup order on the host:
 
 ```bash
 qm set 207 --startup order=1,up=60
@@ -136,3 +134,14 @@ qm set 207 --startup order=1,up=60
 Proxmox starts VMs with an explicit order first and waits 60 s after israfel before the rest
 (the other VMs have no `startup` and come afterwards). On shutdown the order is reversed, so
 israfel stops last.
+
+## Known issue: intermittent `Stale file handle`
+
+Containers that bind-mount a subfolder of the NFS share (Transmission, Lidarr, Sonarr) can get
+`Stale file handle` for a few minutes, or report a missing root folder, and then recover on their own.
+
+- The export serves an NTFS disk mounted with NTFS-3G (FUSE). FUSE does not keep stable file
+  handles, so when the server drops a directory from its cache the clients see it as stale until it
+  is resolved again.
+- If a service reports a missing folder that exists, wait a minute and check again before looking
+  for another cause.

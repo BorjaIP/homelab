@@ -40,8 +40,7 @@ on both, only on the paths that need it. The last command shows the token's effe
 ### 2. Fill in `terraform/.env`
 
 The wrapper reads `terraform/.env`, so the credentials already used by Terraform are reused
-without a second copy (the older `mcp/` folder with its own `.env` no longer exists). It accepts
-the same variable names used elsewhere in the homelab:
+without a second copy. It accepts the same variable names used elsewhere in the homelab:
 
 ```bash
 PROXMOX_HOST=192.168.1.X
